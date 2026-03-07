@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 // App identity
-pub const APP_NAME: &str = "pomo";
+pub const APP_NAME: &str = "tomatui";
 
 // Date format used for stats keys and display
 pub const DATE_FORMAT: &str = "%Y-%m-%d";

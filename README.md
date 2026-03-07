@@ -1,4 +1,4 @@
-# Pomo
+# Tomatui
 
 [Japanese / 日本語](README_ja.md)
 
@@ -17,14 +17,14 @@ cargo install --path .
 ## Usage
 
 ```bash
-pomo start              # Rich TUI
-pomo start -m           # Minimal one-line mode
-pomo start -w 30 -b 10  # Custom work/break duration
-pomo stats              # Today's stats
-pomo stats history      # Last 7 days
-pomo stats summary      # All-time summary
-pomo config -w 30       # Save settings
-pomo config --reset     # Reset to defaults
+tomatui start              # Rich TUI
+tomatui start -m           # Minimal one-line mode
+tomatui start -w 30 -b 10  # Custom work/break duration
+tomatui stats              # Today's stats
+tomatui stats history      # Last 7 days
+tomatui stats summary      # All-time summary
+tomatui config -w 30       # Save settings
+tomatui config --reset     # Reset to defaults
 ```
 
 ## Keybindings

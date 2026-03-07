@@ -47,11 +47,11 @@ impl App {
                     eprintln!("Failed to record pomodoro: {}", e);
                 }
             }
-            notify("Pomo", "Work session complete! Time for a break.");
+            notify("Tomatui", "Work session complete! Time for a break.");
         } else if self.timer.phase == Phase::Work {
-            notify("Pomo", "Work session skipped.");
+            notify("Tomatui", "Work session skipped.");
         } else {
-            notify("Pomo", "Break is over! Time to work.");
+            notify("Tomatui", "Break is over! Time to work.");
         }
 
         self.timer.advance_phase();

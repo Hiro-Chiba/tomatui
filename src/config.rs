@@ -49,7 +49,7 @@ pub fn save_config(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
 pub fn print_config() {
     let config = load_config();
     let path = config_path();
-    println!("\n  Pomo Settings ({})", path.display());
+    println!("\n  Tomatui Settings ({})", path.display());
     println!("  {}", "-".repeat(40));
     println!("  work           {} min", config.work_minutes);
     println!("  break          {} min", config.break_minutes);
