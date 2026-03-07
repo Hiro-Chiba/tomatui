@@ -10,7 +10,7 @@ pub fn run(config: TimerConfig) -> Result<(), Box<dyn std::error::Error>> {
     let mut app = App::new(config);
 
     loop {
-        terminal.draw(|frame| ui::draw(frame, &app))?;
+        terminal.draw(|frame| ui::draw(frame, &mut app))?;
 
         if event::poll(TICK_RATE)? {
             if let Event::Key(key) = event::read()? {

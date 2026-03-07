@@ -20,3 +20,4 @@ pub const MINI_BAR_WIDTH: usize = 16;
 
 // Time conversion
 pub const SECS_PER_MIN: u64 = 60;
+pub const MINS_PER_HOUR: u64 = 60;

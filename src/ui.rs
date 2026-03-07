@@ -7,7 +7,7 @@ use ratatui::Frame;
 use tui_big_text::{BigText, PixelSize};
 
 use crate::app::App;
-use crate::constants::{BOX_HEIGHT, BOX_WIDTH, FONT_GLYPH_WIDTH, FONT_VISUAL_OFFSET, SECS_PER_MIN};
+use crate::constants::{BOX_HEIGHT, BOX_WIDTH, FONT_GLYPH_WIDTH, FONT_VISUAL_OFFSET, MINS_PER_HOUR};
 use crate::timer::Phase;
 
 fn phase_color(phase: Phase) -> Color {
@@ -36,7 +36,7 @@ fn center_area(area: Rect, width: u16, height: u16) -> Rect {
     horizontal[0]
 }
 
-pub fn draw(frame: &mut Frame, app: &App) {
+pub fn draw(frame: &mut Frame, app: &mut App) {
     let color = phase_color(app.timer.phase);
     let bg_dim = dim_color(app.timer.phase);
 
@@ -165,8 +165,8 @@ pub fn draw(frame: &mut Frame, app: &App) {
 
     // Today's stats
     let (pomos, minutes) = app.today_stats();
-    let hours = minutes / SECS_PER_MIN;
-    let mins = minutes % SECS_PER_MIN;
+    let hours = minutes / MINS_PER_HOUR;
+    let mins = minutes % MINS_PER_HOUR;
     let stats_widget = Paragraph::new(Line::from(vec![
         Span::styled(
             format!("{} pomodoros", pomos),

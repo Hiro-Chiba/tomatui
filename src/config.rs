@@ -39,11 +39,11 @@ pub fn load_config() -> Config {
     }
 }
 
-pub fn save_config(config: &Config) {
+pub fn save_config(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
     let path = config_path();
-    if let Ok(json) = serde_json::to_string_pretty(config) {
-        fs::write(&path, json).ok();
-    }
+    let json = serde_json::to_string_pretty(config)?;
+    fs::write(&path, json)?;
+    Ok(())
 }
 
 pub fn print_config() {

@@ -55,7 +55,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             reset,
         } => {
             if reset {
-                save_config(&Config::default());
+                if let Err(e) = save_config(&Config::default()) {
+                    eprintln!("Failed to save config: {}", e);
+                }
                 println!("  Settings reset to defaults.");
                 config::print_config();
                 return Ok(());
@@ -80,7 +82,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(v) = sessions {
                     cfg.sessions = v;
                 }
-                save_config(&cfg);
+                if let Err(e) = save_config(&cfg) {
+                    eprintln!("Failed to save config: {}", e);
+                }
                 println!("  Settings updated.");
             }
 

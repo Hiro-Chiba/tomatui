@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
-use crate::constants::{APP_NAME, DATE_FORMAT, SECS_PER_MIN};
+use crate::constants::{APP_NAME, DATE_FORMAT, MINS_PER_HOUR};
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 pub struct DayStat {
@@ -58,26 +58,26 @@ pub fn load_stats() -> Stats {
     }
 }
 
-pub fn save_stats(stats: &Stats) {
+pub fn save_stats(stats: &Stats) -> Result<(), Box<dyn std::error::Error>> {
     let path = stats_path();
-    if let Ok(json) = serde_json::to_string_pretty(stats) {
-        fs::write(path, json).ok();
-    }
+    let json = serde_json::to_string_pretty(stats)?;
+    fs::write(path, json)?;
+    Ok(())
 }
 
-pub fn record_pomodoro(work_minutes: u64) {
+pub fn record_pomodoro(work_minutes: u64) -> Result<(), Box<dyn std::error::Error>> {
     let mut stats = load_stats();
     let today = Local::now().format(DATE_FORMAT).to_string();
     stats.record(&today, work_minutes);
-    save_stats(&stats);
+    save_stats(&stats)
 }
 
 pub fn print_today() {
     let stats = load_stats();
     let today = Local::now().format(DATE_FORMAT).to_string();
     let (pomos, minutes) = stats.get_day(&today);
-    let h = minutes / SECS_PER_MIN;
-    let m = minutes % SECS_PER_MIN;
+    let h = minutes / MINS_PER_HOUR;
+    let m = minutes % MINS_PER_HOUR;
     println!("\n  Today ({})", today);
     println!("  {}", "-".repeat(30));
     println!("  Pomodoros:   {}", pomos);
@@ -88,8 +88,8 @@ pub fn print_today() {
 pub fn print_summary() {
     let stats = load_stats();
     let (total_pomos, total_minutes) = stats.total();
-    let h = total_minutes / SECS_PER_MIN;
-    let m = total_minutes % SECS_PER_MIN;
+    let h = total_minutes / MINS_PER_HOUR;
+    let m = total_minutes % MINS_PER_HOUR;
     let days_active = stats.days.len();
     let avg = if days_active > 0 {
         total_pomos as f64 / days_active as f64
@@ -129,8 +129,8 @@ pub fn print_history(days: u32) {
         };
 
         if let Some(day) = stats.days.get(&date) {
-            let hours = day.work_minutes / SECS_PER_MIN;
-            let mins = day.work_minutes % SECS_PER_MIN;
+            let hours = day.work_minutes / MINS_PER_HOUR;
+            let mins = day.work_minutes % MINS_PER_HOUR;
             let bar = "\u{2588}".repeat(day.pomodoros as usize);
             println!(
                 "  {:<12} {:>2} pomos  {:>2}h {:>2}m  {}",
@@ -144,8 +144,8 @@ pub fn print_history(days: u32) {
     }
 
     println!("  {}", "-".repeat(44));
-    let total_h = period_minutes / SECS_PER_MIN;
-    let total_m = period_minutes % SECS_PER_MIN;
+    let total_h = period_minutes / MINS_PER_HOUR;
+    let total_m = period_minutes % MINS_PER_HOUR;
     println!(
         "  Period total: {} pomodoros, {}h {}m\n",
         period_pomos, total_h, total_m
@@ -153,7 +153,10 @@ pub fn print_history(days: u32) {
 }
 
 pub fn clear_stats() {
-    save_stats(&Stats::default());
+    if let Err(e) = save_stats(&Stats::default()) {
+        eprintln!("Failed to clear stats: {}", e);
+        return;
+    }
     println!("  All statistics cleared.");
 }
 
