@@ -1,17 +1,30 @@
 # Tomatui
 
+[![Crates.io](https://img.shields.io/crates/v/tomatui)](https://crates.io/crates/tomatui)
+[![CI](https://github.com/Hiro-Chiba/tomatui/actions/workflows/ci.yml/badge.svg)](https://github.com/Hiro-Chiba/tomatui/actions)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 [Japanese / 日本語](README_ja.md)
 
-A terminal Pomodoro timer built with Rust.
+A beautiful terminal Pomodoro timer built with Rust.
 
 Work | Break | Long Break
 :---:|:---:|:---:
 ![Work](assets/work.png) | ![Break](assets/break.png) | ![Long Break](assets/long_break.png)
 
+## Features
+
+- Rich TUI with big-text timer display and progress bar
+- Minimal one-line mode (`-m`) for small terminals
+- Session tracking with visual dots
+- Daily/weekly/all-time statistics with persistent storage
+- macOS native notifications
+- Configurable work/break durations and session count
+
 ## Install
 
 ```bash
-cargo install --path .
+cargo install tomatui
 ```
 
 ## Usage
