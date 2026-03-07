@@ -10,7 +10,7 @@ homepage = "https://github.com/Hiro-Chiba/tomatui"
 readme = "README.md"
 keywords = ["pomodoro", "timer", "tui", "productivity", "terminal"]
 categories = ["command-line-utilities"]
-rust-version = "1.75"
+rust-version = "1.93"
 exclude = ["assets/", ".github/"]
 
 [dependencies]
