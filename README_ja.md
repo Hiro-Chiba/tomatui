@@ -2,6 +2,10 @@
 
 Rust製のターミナルポモドーロタイマー。
 
+Work | Break | Long Break
+:---:|:---:|:---:
+![Work](assets/work.png) | ![Break](assets/break.png) | ![Long Break](assets/long_break.png)
+
 ## インストール
 
 ```bash

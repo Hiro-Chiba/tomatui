@@ -4,6 +4,10 @@
 
 A terminal Pomodoro timer built with Rust.
 
+Work | Break | Long Break
+:---:|:---:|:---:
+![Work](assets/work.png) | ![Break](assets/break.png) | ![Long Break](assets/long_break.png)
+
 ## Install
 
 ```bash
