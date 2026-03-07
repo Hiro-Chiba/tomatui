@@ -1,5 +1,7 @@
 # Pomo
 
+[Japanese / 日本語](README_ja.md)
+
 A terminal Pomodoro timer built with Rust.
 
 ## Install
