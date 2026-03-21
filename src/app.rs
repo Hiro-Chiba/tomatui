@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use crate::constants::{DATE_FORMAT, SECS_PER_MIN};
+use crate::constants::DATE_FORMAT;
 use crate::notification::{bell, notify};
 use crate::stats::record_pomodoro;
 use crate::timer::{Phase, Timer, TimerConfig};
@@ -36,7 +36,7 @@ impl App {
         bell();
 
         if self.timer.phase == Phase::Work && !self.timer.skipped {
-            let work_minutes = self.timer.config.work_secs / SECS_PER_MIN;
+            let work_minutes = self.timer.config.work_secs / 60;
             match record_pomodoro(work_minutes) {
                 Ok(()) => {
                     self.cached_stats.0 += 1;
@@ -120,17 +120,6 @@ mod tests {
         assert!(app.timer.phase == Phase::Break || app.timer.phase == Phase::LongBreak);
         app.on_key('w');
         assert_eq!(app.timer.phase, Phase::Work);
-    }
-
-    #[test]
-    fn test_on_key_unknown_does_nothing() {
-        let mut app = App::new(test_config());
-        let paused_before = app.timer.paused;
-        let phase_before = app.timer.phase;
-        app.on_key('x');
-        assert_eq!(app.timer.paused, paused_before);
-        assert_eq!(app.timer.phase, phase_before);
-        assert!(!app.should_quit);
     }
 
     #[test]

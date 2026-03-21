@@ -9,6 +9,3 @@ pub const BOX_HEIGHT: u16 = 18;
 pub const FONT_GLYPH_WIDTH: u16 = 8;
 pub const FONT_VISUAL_OFFSET: u16 = 1;
 pub const MINI_BAR_WIDTH: usize = 16;
-
-pub const SECS_PER_MIN: u64 = 60;
-pub const MINS_PER_HOUR: u64 = 60;

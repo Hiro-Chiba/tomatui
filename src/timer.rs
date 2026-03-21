@@ -1,4 +1,3 @@
-use crate::constants::SECS_PER_MIN;
 use std::time::{Duration, Instant};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -140,7 +139,7 @@ impl Timer {
 
     pub fn remaining_display(&self) -> String {
         let secs = self.remaining.as_secs();
-        format!("{:02}:{:02}", secs / SECS_PER_MIN, secs % SECS_PER_MIN)
+        format!("{:02}:{:02}", secs / 60, secs % 60)
     }
 }
 

@@ -12,7 +12,6 @@ mod ui;
 use clap::Parser;
 use cli::{Cli, Commands, StatsCommands};
 use config::{load_config, save_config, Config};
-use constants::SECS_PER_MIN;
 use timer::TimerConfig;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -28,9 +27,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => {
             let cfg = load_config();
             let config = TimerConfig {
-                work_secs: work.unwrap_or(cfg.work_minutes) * SECS_PER_MIN,
-                break_secs: r#break.unwrap_or(cfg.break_minutes) * SECS_PER_MIN,
-                long_break_secs: long_break.unwrap_or(cfg.long_break_minutes) * SECS_PER_MIN,
+                work_secs: work.unwrap_or(cfg.work_minutes) * 60,
+                break_secs: r#break.unwrap_or(cfg.break_minutes) * 60,
+                long_break_secs: long_break.unwrap_or(cfg.long_break_minutes) * 60,
                 sessions: sessions.unwrap_or(cfg.sessions),
             };
 

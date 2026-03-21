@@ -51,7 +51,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn default_values() {
+    fn test_default_values() {
         let config = Config::default();
         assert_eq!(config.work_minutes, 25);
         assert_eq!(config.break_minutes, 5);
@@ -60,7 +60,7 @@ mod tests {
     }
 
     #[test]
-    fn serialize_deserialize_roundtrip() {
+    fn test_serialize_deserialize_roundtrip() {
         let config = Config {
             work_minutes: 30,
             break_minutes: 10,
@@ -76,7 +76,7 @@ mod tests {
     }
 
     #[test]
-    fn invalid_json_falls_back_to_default() {
+    fn test_invalid_json_falls_back_to_default() {
         let result: Config = serde_json::from_str("not json").unwrap_or_default();
         let default = Config::default();
         assert_eq!(result.work_minutes, default.work_minutes);
