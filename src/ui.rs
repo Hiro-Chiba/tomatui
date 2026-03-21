@@ -7,7 +7,9 @@ use ratatui::Frame;
 use tui_big_text::{BigText, PixelSize};
 
 use crate::app::App;
-use crate::constants::{BOX_HEIGHT, BOX_WIDTH, FONT_GLYPH_WIDTH, FONT_VISUAL_OFFSET, MINS_PER_HOUR};
+use crate::constants::{
+    BOX_HEIGHT, BOX_WIDTH, FONT_GLYPH_WIDTH, FONT_VISUAL_OFFSET, MINS_PER_HOUR,
+};
 use crate::timer::Phase;
 
 fn phase_color(phase: Phase) -> Color {
@@ -103,9 +105,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     let phase = Paragraph::new(Line::from(vec![
         Span::styled(
             app.timer.phase.label().to_uppercase(),
-            Style::default()
-                .fg(color)
-                .add_modifier(Modifier::BOLD),
+            Style::default().fg(color).add_modifier(Modifier::BOLD),
         ),
         pause_indicator,
     ]))
@@ -185,17 +185,47 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
 
     // Help
     let help = Paragraph::new(Line::from(vec![
-        Span::styled("q", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "q",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled(" quit  ", Style::default().fg(Color::DarkGray)),
-        Span::styled("p", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "p",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled("/", Style::default().fg(Color::DarkGray)),
-        Span::styled("space", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "space",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled(" pause  ", Style::default().fg(Color::DarkGray)),
-        Span::styled("s", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "s",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled(" skip  ", Style::default().fg(Color::DarkGray)),
-        Span::styled("w", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "w",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled("/", Style::default().fg(Color::DarkGray)),
-        Span::styled("b", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "b",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled(" switch", Style::default().fg(Color::DarkGray)),
     ]))
     .alignment(Alignment::Center);

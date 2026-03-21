@@ -16,7 +16,6 @@ impl Phase {
             Phase::LongBreak => "Long Break",
         }
     }
-
 }
 
 pub struct TimerConfig {

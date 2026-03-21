@@ -63,10 +63,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Ok(());
             }
 
-            let has_updates = work.is_some()
-                || r#break.is_some()
-                || long_break.is_some()
-                || sessions.is_some();
+            let has_updates =
+                work.is_some() || r#break.is_some() || long_break.is_some() || sessions.is_some();
 
             if has_updates {
                 let mut cfg = load_config();

@@ -9,8 +9,8 @@ use crate::timer::{Phase, TimerConfig};
 
 fn phase_color_code(phase: Phase) -> &'static str {
     match phase {
-        Phase::Work => "\x1b[31m",    // red
-        Phase::Break => "\x1b[32m",   // green
+        Phase::Work => "\x1b[31m",      // red
+        Phase::Break => "\x1b[32m",     // green
         Phase::LongBreak => "\x1b[34m", // blue
     }
 }

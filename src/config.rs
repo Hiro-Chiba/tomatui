@@ -46,6 +46,46 @@ pub fn save_config(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_values() {
+        let config = Config::default();
+        assert_eq!(config.work_minutes, 25);
+        assert_eq!(config.break_minutes, 5);
+        assert_eq!(config.long_break_minutes, 15);
+        assert_eq!(config.sessions, 4);
+    }
+
+    #[test]
+    fn serialize_deserialize_roundtrip() {
+        let config = Config {
+            work_minutes: 30,
+            break_minutes: 10,
+            long_break_minutes: 20,
+            sessions: 6,
+        };
+        let json = serde_json::to_string(&config).unwrap();
+        let restored: Config = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored.work_minutes, config.work_minutes);
+        assert_eq!(restored.break_minutes, config.break_minutes);
+        assert_eq!(restored.long_break_minutes, config.long_break_minutes);
+        assert_eq!(restored.sessions, config.sessions);
+    }
+
+    #[test]
+    fn invalid_json_falls_back_to_default() {
+        let result: Config = serde_json::from_str("not json").unwrap_or_default();
+        let default = Config::default();
+        assert_eq!(result.work_minutes, default.work_minutes);
+        assert_eq!(result.break_minutes, default.break_minutes);
+        assert_eq!(result.long_break_minutes, default.long_break_minutes);
+        assert_eq!(result.sessions, default.sessions);
+    }
+}
+
 pub fn print_config() {
     let config = load_config();
     let path = config_path();

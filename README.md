@@ -6,7 +6,7 @@
 
 [Japanese / 日本語](README_ja.md)
 
-A beautiful terminal Pomodoro timer built with Rust.
+A terminal Pomodoro timer with stats tracking.
 
 Work | Break | Long Break
 :---:|:---:|:---:
@@ -14,11 +14,11 @@ Work | Break | Long Break
 
 ## Features
 
-- Rich TUI with big-text timer display and progress bar
+- Big-text timer display with progress bar
 - Minimal one-line mode (`-m`) for small terminals
 - Session tracking with visual dots
 - Daily/weekly/all-time statistics with persistent storage
-- macOS native notifications
+- Desktop notifications (macOS, Linux)
 - Configurable work/break durations and session count
 
 ## Install
