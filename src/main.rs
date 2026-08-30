@@ -12,7 +12,6 @@ mod ui;
 use clap::Parser;
 use cli::{Cli, Commands, StatsCommands};
 use config::{load_config, save_config, Config};
-use timer::TimerConfig;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
@@ -25,13 +24,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             long_break,
             sessions,
         } => {
-            let cfg = load_config();
-            let config = TimerConfig {
-                work_secs: work.unwrap_or(cfg.work_minutes) * 60,
-                break_secs: r#break.unwrap_or(cfg.break_minutes) * 60,
-                long_break_secs: long_break.unwrap_or(cfg.long_break_minutes) * 60,
-                sessions: sessions.unwrap_or(cfg.sessions),
-            };
+            let mut cfg = load_config()?;
+            cfg.work_minutes = work.unwrap_or(cfg.work_minutes);
+            cfg.break_minutes = r#break.unwrap_or(cfg.break_minutes);
+            cfg.long_break_minutes = long_break.unwrap_or(cfg.long_break_minutes);
+            cfg.sessions = sessions.unwrap_or(cfg.sessions);
+            let config = cfg.timer_config()?;
 
             if minimal {
                 minimal::run(config)?;
@@ -40,11 +38,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         Commands::Stats { command } => match command {
-            Some(StatsCommands::Today) => stats::print_today(),
-            Some(StatsCommands::History { days }) => stats::print_history(days),
-            Some(StatsCommands::Summary) => stats::print_summary(),
-            Some(StatsCommands::Clear) => stats::clear_stats(),
-            None => stats::print_today(),
+            Some(StatsCommands::Today) => stats::print_today()?,
+            Some(StatsCommands::History { days }) => stats::print_history(days)?,
+            Some(StatsCommands::Summary) => stats::print_summary()?,
+            Some(StatsCommands::Clear) => stats::clear_stats()?,
+            None => stats::print_today()?,
         },
         Commands::Config {
             work,
@@ -54,11 +52,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             reset,
         } => {
             if reset {
-                if let Err(e) = save_config(&Config::default()) {
-                    eprintln!("Failed to save config: {}", e);
-                }
+                save_config(&Config::default())?;
                 println!("  Settings reset to defaults.");
-                config::print_config();
+                config::print_config()?;
                 return Ok(());
             }
 
@@ -66,7 +62,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 work.is_some() || r#break.is_some() || long_break.is_some() || sessions.is_some();
 
             if has_updates {
-                let mut cfg = load_config();
+                let mut cfg = load_config()?;
                 if let Some(v) = work {
                     cfg.work_minutes = v;
                 }
@@ -79,13 +75,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(v) = sessions {
                     cfg.sessions = v;
                 }
-                if let Err(e) = save_config(&cfg) {
-                    eprintln!("Failed to save config: {}", e);
-                }
+                save_config(&cfg)?;
                 println!("  Settings updated.");
             }
 
-            config::print_config();
+            config::print_config()?;
         }
     }
 

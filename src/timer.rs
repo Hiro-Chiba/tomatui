@@ -51,12 +51,20 @@ impl Timer {
     }
 
     pub fn tick(&mut self) -> bool {
+        self.tick_at(Instant::now())
+    }
+
+    fn tick_at(&mut self, now: Instant) -> bool {
+        if self.skipped || self.remaining.is_zero() {
+            self.remaining = Duration::ZERO;
+            return true;
+        }
+
         if self.paused {
-            self.last_tick = Instant::now();
+            self.last_tick = now;
             return false;
         }
 
-        let now = Instant::now();
         let elapsed = now.duration_since(self.last_tick);
         self.last_tick = now;
 
@@ -110,6 +118,11 @@ impl Timer {
     }
 
     pub fn switch_to_work(&mut self) {
+        if self.phase != Phase::Work {
+            self.advance_phase();
+            return;
+        }
+
         self.phase = Phase::Work;
         self.remaining = Duration::from_secs(self.config.work_secs);
         self.total = self.remaining;
@@ -138,8 +151,17 @@ impl Timer {
     }
 
     pub fn remaining_display(&self) -> String {
-        let secs = self.remaining.as_secs();
+        let secs = self.display_seconds();
         format!("{:02}:{:02}", secs / 60, secs % 60)
+    }
+
+    pub(crate) fn display_seconds(&self) -> u64 {
+        let partial_second = if self.remaining.subsec_nanos() > 0 {
+            1
+        } else {
+            0
+        };
+        self.remaining.as_secs().saturating_add(partial_second)
     }
 }
 
@@ -206,6 +228,97 @@ mod tests {
     }
 
     #[test]
+    fn test_single_session_uses_long_break_and_resets_session() {
+        let mut config = test_config();
+        config.sessions = 1;
+        let mut timer = Timer::new(config);
+
+        timer.advance_phase();
+        assert_eq!(timer.phase, Phase::LongBreak);
+        assert_eq!(timer.current_session, 1);
+
+        timer.advance_phase();
+        assert_eq!(timer.phase, Phase::Work);
+        assert_eq!(timer.current_session, 1);
+    }
+
+    #[test]
+    fn test_pause_excludes_paused_time_after_resume() {
+        let mut timer = Timer::new(test_config());
+        timer.toggle_pause();
+        let paused_at = timer.last_tick;
+
+        assert!(!timer.tick_at(paused_at + Duration::from_secs(10)));
+        assert_eq!(timer.remaining, Duration::from_secs(1500));
+
+        timer.toggle_pause();
+        let resumed_at = timer.last_tick;
+        assert!(!timer.tick_at(resumed_at + Duration::from_secs(1)));
+        assert_eq!(timer.remaining, Duration::from_secs(1499));
+    }
+
+    #[test]
+    fn test_tick_completes_at_the_deadline() {
+        let mut timer = Timer::new(test_config());
+        timer.remaining = Duration::from_secs(2);
+        let started_at = timer.last_tick;
+
+        assert!(timer.tick_at(started_at + Duration::from_secs(2)));
+        assert!(timer.remaining.is_zero());
+    }
+
+    #[test]
+    fn test_skip_completes_while_paused_and_preserves_pause() {
+        let mut timer = Timer::new(test_config());
+        timer.toggle_pause();
+        timer.skip();
+
+        assert!(timer.tick());
+        timer.advance_phase();
+
+        assert_eq!(timer.phase, Phase::Break);
+        assert!(timer.paused);
+        assert!(!timer.skipped);
+    }
+
+    #[test]
+    fn test_zero_remaining_completes_while_paused_without_skip() {
+        let mut timer = Timer::new(test_config());
+        timer.toggle_pause();
+        timer.remaining = Duration::ZERO;
+
+        assert!(timer.tick());
+        assert!(!timer.skipped);
+    }
+
+    #[test]
+    fn test_skip_break_advances_session() {
+        let mut timer = Timer::new(test_config());
+        timer.advance_phase();
+        timer.skip();
+
+        assert!(timer.tick());
+        timer.advance_phase();
+
+        assert_eq!(timer.phase, Phase::Work);
+        assert_eq!(timer.current_session, 2);
+    }
+
+    #[test]
+    fn test_skip_long_break_resets_session() {
+        let mut timer = Timer::new(test_config());
+        timer.current_session = timer.config.sessions;
+        timer.advance_phase();
+        timer.skip();
+
+        assert!(timer.tick());
+        timer.advance_phase();
+
+        assert_eq!(timer.phase, Phase::Work);
+        assert_eq!(timer.current_session, 1);
+    }
+
+    #[test]
     fn test_progress_at_start_is_zero() {
         let timer = Timer::new(test_config());
         assert!((timer.progress() - 0.0).abs() < 0.01);
@@ -236,6 +349,12 @@ mod tests {
 
         timer.remaining = Duration::from_secs(0);
         assert_eq!(timer.remaining_display(), "00:00");
+
+        timer.remaining = Duration::from_millis(1);
+        assert_eq!(timer.remaining_display(), "00:01");
+
+        timer.remaining = Duration::from_millis(1001);
+        assert_eq!(timer.remaining_display(), "00:02");
     }
 
     #[test]
@@ -266,11 +385,60 @@ mod tests {
     }
 
     #[test]
+    fn test_switch_to_work_from_break_increments_session() {
+        let mut timer = Timer::new(test_config());
+        timer.advance_phase();
+
+        timer.switch_to_work();
+
+        assert_eq!(timer.phase, Phase::Work);
+        assert_eq!(timer.current_session, 2);
+        assert_eq!(timer.remaining, Duration::from_secs(1500));
+    }
+
+    #[test]
+    fn test_switch_to_work_from_long_break_resets_session() {
+        let mut timer = Timer::new(test_config());
+        timer.current_session = timer.config.sessions;
+        timer.advance_phase();
+
+        timer.switch_to_work();
+
+        assert_eq!(timer.phase, Phase::Work);
+        assert_eq!(timer.current_session, 1);
+        assert_eq!(timer.remaining, Duration::from_secs(1500));
+    }
+
+    #[test]
+    fn test_switch_to_work_from_work_keeps_session() {
+        let mut timer = Timer::new(test_config());
+        timer.current_session = 3;
+        timer.remaining = Duration::from_secs(1);
+
+        timer.switch_to_work();
+
+        assert_eq!(timer.phase, Phase::Work);
+        assert_eq!(timer.current_session, 3);
+        assert_eq!(timer.remaining, Duration::from_secs(1500));
+    }
+
+    #[test]
     fn test_switch_to_break_resets_skipped() {
         let mut timer = Timer::new(test_config());
         timer.skip();
         assert!(timer.skipped);
         timer.switch_to_break();
         assert!(!timer.skipped);
+    }
+
+    #[test]
+    fn test_switch_to_break_at_last_session_uses_long_break() {
+        let mut timer = Timer::new(test_config());
+        timer.current_session = timer.config.sessions;
+
+        timer.switch_to_break();
+
+        assert_eq!(timer.phase, Phase::LongBreak);
+        assert_eq!(timer.remaining, Duration::from_secs(900));
     }
 }

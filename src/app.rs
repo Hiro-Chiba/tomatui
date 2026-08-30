@@ -16,20 +16,28 @@ pub struct App {
 
 impl App {
     pub fn new(config: TimerConfig) -> Self {
-        let stats = Self::fetch_today_stats();
+        Self::with_cached_stats(config, Self::fetch_today_stats())
+    }
+
+    fn with_cached_stats(config: TimerConfig, cached_stats: (u32, u64)) -> Self {
         Self {
             timer: Timer::new(config),
             should_quit: false,
-            cached_stats: stats,
+            cached_stats,
             stats_updated_at: Instant::now(),
         }
     }
 
-    pub fn tick(&mut self) {
+    pub fn tick(&mut self) -> bool {
+        let previous_phase = self.timer.phase;
+        let previous_display_seconds = self.timer.display_seconds();
         let phase_complete = self.timer.tick();
         if phase_complete {
             self.on_phase_complete();
         }
+
+        self.timer.phase != previous_phase
+            || self.timer.display_seconds() != previous_display_seconds
     }
 
     fn on_phase_complete(&mut self) {
@@ -38,9 +46,8 @@ impl App {
         if self.timer.phase == Phase::Work && !self.timer.skipped {
             let work_minutes = self.timer.config.work_secs / 60;
             match record_pomodoro(work_minutes) {
-                Ok(()) => {
-                    self.cached_stats.0 += 1;
-                    self.cached_stats.1 += work_minutes;
+                Ok(today_stats) => {
+                    self.cached_stats = today_stats;
                     self.stats_updated_at = Instant::now();
                 }
                 Err(e) => {
@@ -69,9 +76,16 @@ impl App {
     }
 
     fn fetch_today_stats() -> (u32, u64) {
-        let stats = crate::stats::load_stats();
-        let today = chrono::Local::now().format(DATE_FORMAT).to_string();
-        stats.get_day(&today)
+        match crate::stats::load_stats() {
+            Ok(stats) => {
+                let today = chrono::Local::now().format(DATE_FORMAT).to_string();
+                stats.get_day(&today)
+            }
+            Err(e) => {
+                eprintln!("Failed to load statistics: {}", e);
+                (0, 0)
+            }
+        }
     }
 
     pub fn today_stats(&mut self) -> (u32, u64) {
@@ -96,16 +110,20 @@ mod tests {
         }
     }
 
+    fn test_app() -> App {
+        App::with_cached_stats(test_config(), (0, 0))
+    }
+
     #[test]
     fn test_on_key_quit() {
-        let mut app = App::new(test_config());
+        let mut app = test_app();
         app.on_key('q');
         assert!(app.should_quit);
     }
 
     #[test]
     fn test_on_key_pause_toggle() {
-        let mut app = App::new(test_config());
+        let mut app = test_app();
         assert!(!app.timer.paused);
         app.on_key('p');
         assert!(app.timer.paused);
@@ -115,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_on_key_switch_work() {
-        let mut app = App::new(test_config());
+        let mut app = test_app();
         app.on_key('b');
         assert!(app.timer.phase == Phase::Break || app.timer.phase == Phase::LongBreak);
         app.on_key('w');
@@ -124,7 +142,7 @@ mod tests {
 
     #[test]
     fn test_skip_sets_remaining_zero() {
-        let mut app = App::new(test_config());
+        let mut app = test_app();
         app.on_key('s');
         assert!(app.timer.remaining.is_zero());
         assert!(app.timer.skipped);
@@ -132,20 +150,28 @@ mod tests {
 
     #[test]
     fn test_skip_does_not_record_pomodoro() {
-        let mut app = App::new(test_config());
+        let mut app = test_app();
         let initial_pomos = app.cached_stats.0;
         app.on_key('s');
         // Simulate tick detecting phase complete
-        app.tick();
+        assert!(app.tick());
         // cached_stats should not have incremented
         assert_eq!(app.cached_stats.0, initial_pomos);
     }
 
     #[test]
     fn test_today_stats_uses_cache() {
-        let mut app = App::new(test_config());
+        let mut app = test_app();
         let stats1 = app.today_stats();
         let stats2 = app.today_stats();
         assert_eq!(stats1, stats2);
+    }
+
+    #[test]
+    fn test_tick_returns_false_while_paused_without_display_change() {
+        let mut app = test_app();
+        app.timer.toggle_pause();
+
+        assert!(!app.tick());
     }
 }
