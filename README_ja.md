@@ -65,10 +65,12 @@ macOSとLinuxのデスクトップ通知はbest effortです。Linuxでは`notif
 
 ## 開発
 
+開発環境はRust 1.98.0に固定しています。CIでは最低対応バージョンのRust 1.93も確認します。
+
 ```bash
 cargo fmt --check
-cargo clippy --all-targets -- -D warnings
-cargo test
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
 ```
 
 ## ライセンス

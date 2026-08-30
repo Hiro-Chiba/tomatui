@@ -65,10 +65,12 @@ Desktop notifications are best effort on macOS and Linux. Linux requires `notify
 
 ## Development
 
+The repository uses Rust 1.98.0 for reproducible development. CI also verifies the declared minimum version, Rust 1.93.
+
 ```bash
 cargo fmt --check
-cargo clippy --all-targets -- -D warnings
-cargo test
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
 ```
 
 ## License
