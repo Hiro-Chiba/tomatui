@@ -15,7 +15,7 @@ fn phase_color_code(phase: Phase) -> &'static str {
     }
 }
 
-fn render_line(app: &App) {
+fn render_line(app: &App) -> io::Result<()> {
     let reset = "\x1b[0m";
     let color = phase_color_code(app.timer.phase);
     let progress = app.timer.progress();
@@ -41,46 +41,71 @@ fn render_line(app: &App) {
         pause,
     );
 
-    print!("{}{}", line, reset);
-    io::stdout().flush().ok();
+    let mut stdout = io::stdout();
+    write!(stdout, "{}{}", line, reset)?;
+    stdout.flush()
+}
+
+fn restore_terminal() -> io::Result<()> {
+    let show_cursor = execute!(io::stdout(), cursor::Show);
+    let clear_line = execute!(io::stdout(), terminal::Clear(ClearType::CurrentLine));
+    let disable_raw_mode = terminal::disable_raw_mode();
+    let print_newline = writeln!(io::stdout());
+
+    show_cursor?;
+    clear_line?;
+    disable_raw_mode?;
+    print_newline
 }
 
 pub fn run(config: TimerConfig) -> Result<(), Box<dyn std::error::Error>> {
-    terminal::enable_raw_mode()?;
-    execute!(io::stdout(), cursor::Hide)?;
-
     let mut app = App::new(config);
+    if let Err(error) = terminal::enable_raw_mode() {
+        let _ = terminal::disable_raw_mode();
+        return Err(error.into());
+    }
+    if let Err(error) = execute!(io::stdout(), cursor::Hide) {
+        let _ = execute!(io::stdout(), cursor::Show);
+        let _ = terminal::disable_raw_mode();
+        return Err(error.into());
+    }
 
-    loop {
-        render_line(&app);
+    let result = (|| -> io::Result<()> {
+        let mut redraw = true;
 
-        if event::poll(TICK_RATE)? {
-            if let Event::Key(key) = event::read()? {
-                if key.kind != KeyEventKind::Press {
-                    continue;
+        loop {
+            if redraw {
+                render_line(&app)?;
+                redraw = false;
+            }
+
+            if event::poll(TICK_RATE)? {
+                redraw = true;
+                if let Event::Key(key) = event::read()? {
+                    if key.kind == KeyEventKind::Press {
+                        match key.code {
+                            KeyCode::Char(c) => app.on_key(c),
+                            KeyCode::Esc => app.should_quit = true,
+                            _ => {}
+                        }
+                    }
                 }
-                match key.code {
-                    KeyCode::Char(c) => app.on_key(c),
-                    KeyCode::Esc => app.should_quit = true,
-                    _ => {}
-                }
+            }
+
+            if app.should_quit {
+                break;
+            }
+
+            if app.tick() {
+                redraw = true;
             }
         }
 
-        app.tick();
+        Ok(())
+    })();
 
-        if app.should_quit {
-            break;
-        }
-    }
-
-    // Clean up
-    execute!(
-        io::stdout(),
-        cursor::Show,
-        terminal::Clear(ClearType::CurrentLine)
-    )?;
-    terminal::disable_raw_mode()?;
-    println!();
+    let restore_result = restore_terminal();
+    result?;
+    restore_result?;
     Ok(())
 }

@@ -140,23 +140,29 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     // Session dots
     let total = app.timer.config.sessions;
     let current = app.timer.current_session;
-    let dots: Vec<Span> = (1..=total)
-        .map(|i| {
-            if i < current || (i == current && app.timer.phase != Phase::Work) {
-                Span::styled("\u{25cf} ", Style::default().fg(color))
-            } else if i == current {
-                Span::styled(
-                    "\u{25ce} ",
-                    Style::default()
-                        .fg(Color::White)
-                        .add_modifier(Modifier::BOLD),
-                )
-            } else {
-                Span::styled("\u{25cb} ", Style::default().fg(Color::DarkGray))
-            }
-        })
-        .collect();
-    let session_widget = Paragraph::new(Line::from(dots)).alignment(Alignment::Center);
+    let session_widget = if total <= u32::from(session_dots_area.width / 2) {
+        let dots: Vec<Span> = (1..=total)
+            .map(|i| {
+                if i < current || (i == current && app.timer.phase != Phase::Work) {
+                    Span::styled("\u{25cf} ", Style::default().fg(color))
+                } else if i == current {
+                    Span::styled(
+                        "\u{25ce} ",
+                        Style::default()
+                            .fg(Color::White)
+                            .add_modifier(Modifier::BOLD),
+                    )
+                } else {
+                    Span::styled("\u{25cb} ", Style::default().fg(Color::DarkGray))
+                }
+            })
+            .collect();
+        Paragraph::new(Line::from(dots))
+    } else {
+        Paragraph::new(format!("Session {current} / {total}"))
+            .style(Style::default().fg(Color::White))
+    }
+    .alignment(Alignment::Center);
     frame.render_widget(session_widget, session_dots_area);
 
     render_sep(frame, sep4, &sep_line, sep_style);
