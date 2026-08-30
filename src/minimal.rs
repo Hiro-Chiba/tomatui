@@ -64,6 +64,13 @@ pub fn run(config: TimerConfig) -> Result<(), Box<dyn std::error::Error>> {
         let _ = terminal::disable_raw_mode();
         return Err(error.into());
     }
+
+    let previous_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |panic_info| {
+        let _ = restore_terminal();
+        previous_hook(panic_info);
+    }));
+
     if let Err(error) = execute!(io::stdout(), cursor::Hide) {
         let _ = execute!(io::stdout(), cursor::Show);
         let _ = terminal::disable_raw_mode();
