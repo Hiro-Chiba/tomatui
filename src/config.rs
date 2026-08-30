@@ -4,8 +4,15 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use crate::constants::APP_NAME;
+use crate::constants::{APP_DISPLAY_NAME, APP_NAME, SECONDS_PER_MINUTE};
 use crate::timer::TimerConfig;
+
+const CONFIG_FILE_NAME: &str = "config.json";
+const DEFAULT_WORK_MINUTES: u64 = 25;
+const DEFAULT_BREAK_MINUTES: u64 = 5;
+const DEFAULT_LONG_BREAK_MINUTES: u64 = 15;
+const DEFAULT_SESSIONS: u32 = 4;
+const SETTINGS_SEPARATOR_WIDTH: usize = 40;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(default)]
@@ -19,10 +26,10 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            work_minutes: 25,
-            break_minutes: 5,
-            long_break_minutes: 15,
-            sessions: 4,
+            work_minutes: DEFAULT_WORK_MINUTES,
+            break_minutes: DEFAULT_BREAK_MINUTES,
+            long_break_minutes: DEFAULT_LONG_BREAK_MINUTES,
+            sessions: DEFAULT_SESSIONS,
         }
     }
 }
@@ -40,7 +47,7 @@ impl Config {
                     format!("{name} duration must be at least 1 minute"),
                 ));
             }
-            if minutes.checked_mul(60).is_none() {
+            if minutes.checked_mul(SECONDS_PER_MINUTE).is_none() {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
                     format!("{name} duration is too large"),
@@ -61,9 +68,9 @@ impl Config {
     pub fn timer_config(&self) -> io::Result<TimerConfig> {
         self.validate()?;
         Ok(TimerConfig {
-            work_secs: self.work_minutes * 60,
-            break_secs: self.break_minutes * 60,
-            long_break_secs: self.long_break_minutes * 60,
+            work_secs: self.work_minutes * SECONDS_PER_MINUTE,
+            break_secs: self.break_minutes * SECONDS_PER_MINUTE,
+            long_break_secs: self.long_break_minutes * SECONDS_PER_MINUTE,
             sessions: self.sessions,
         })
     }
@@ -73,7 +80,7 @@ fn config_path() -> PathBuf {
     dirs::config_dir()
         .unwrap_or_else(|| PathBuf::from("."))
         .join(APP_NAME)
-        .join("config.json")
+        .join(CONFIG_FILE_NAME)
 }
 
 fn load_config_from(path: &Path) -> Result<Config, Box<dyn Error>> {
@@ -107,8 +114,8 @@ pub fn save_config(config: &Config) -> Result<(), Box<dyn Error>> {
 pub fn print_config() -> Result<(), Box<dyn Error>> {
     let config = load_config()?;
     let path = config_path();
-    println!("\n  Tomatui Settings ({})", path.display());
-    println!("  {}", "-".repeat(40));
+    println!("\n  {APP_DISPLAY_NAME} Settings ({})", path.display());
+    println!("  {}", "-".repeat(SETTINGS_SEPARATOR_WIDTH));
     println!("  work           {} min", config.work_minutes);
     println!("  break          {} min", config.break_minutes);
     println!("  long_break     {} min", config.long_break_minutes);

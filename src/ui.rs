@@ -7,22 +7,41 @@ use ratatui::widgets::{Block, Borders, Gauge, Padding, Paragraph};
 use tui_big_text::{BigText, PixelSize};
 
 use crate::app::App;
-use crate::constants::{BOX_HEIGHT, BOX_WIDTH, FONT_GLYPH_WIDTH, FONT_VISUAL_OFFSET};
+use crate::constants::{
+    BOX_HEIGHT, BOX_WIDTH, BREAK_KEY, FONT_GLYPH_WIDTH, FONT_VISUAL_OFFSET, MINUTES_PER_HOUR,
+    PAUSE_KEY, PAUSED_LABEL, QUIT_KEY, SKIP_KEY, WORK_KEY,
+};
 use crate::timer::Phase;
+
+const WORK_COLOR: Color = Color::Rgb(235, 87, 87);
+const BREAK_COLOR: Color = Color::Rgb(111, 207, 151);
+const LONG_BREAK_COLOR: Color = Color::Rgb(86, 156, 214);
+const DARK_WORK_COLOR: Color = Color::Rgb(100, 30, 30);
+const DARK_BREAK_COLOR: Color = Color::Rgb(30, 80, 50);
+const DARK_LONG_BREAK_COLOR: Color = Color::Rgb(30, 50, 80);
+const BOX_PADDING: Padding = Padding::new(1, 1, 0, 0);
+const ROW_HEIGHT: u16 = 1;
+const BIG_TIME_HEIGHT: u16 = 4;
+const SESSION_DOT_WIDTH: u16 = 2;
+const PERCENT_SCALE: f64 = 100.0;
+const HORIZONTAL_LINE: &str = "\u{2500}";
+const COMPLETED_SESSION_DOT: &str = "\u{25cf} ";
+const CURRENT_SESSION_DOT: &str = "\u{25ce} ";
+const FUTURE_SESSION_DOT: &str = "\u{25cb} ";
 
 fn phase_color(phase: Phase) -> Color {
     match phase {
-        Phase::Work => Color::Rgb(235, 87, 87),
-        Phase::Break => Color::Rgb(111, 207, 151),
-        Phase::LongBreak => Color::Rgb(86, 156, 214),
+        Phase::Work => WORK_COLOR,
+        Phase::Break => BREAK_COLOR,
+        Phase::LongBreak => LONG_BREAK_COLOR,
     }
 }
 
 fn dim_color(phase: Phase) -> Color {
     match phase {
-        Phase::Work => Color::Rgb(100, 30, 30),
-        Phase::Break => Color::Rgb(30, 80, 50),
-        Phase::LongBreak => Color::Rgb(30, 50, 80),
+        Phase::Work => DARK_WORK_COLOR,
+        Phase::Break => DARK_BREAK_COLOR,
+        Phase::LongBreak => DARK_LONG_BREAK_COLOR,
     }
 }
 
@@ -47,7 +66,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         .borders(Borders::ALL)
         .border_set(border::ROUNDED)
         .border_style(Style::default().fg(color))
-        .padding(Padding::new(1, 1, 0, 0));
+        .padding(BOX_PADDING);
     let inner = outer_block.inner(outer);
     frame.render_widget(outer_block, outer);
 
@@ -65,18 +84,18 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         sep5,
         help_area,
     ] = Layout::vertical([
-        Constraint::Length(1), // title
-        Constraint::Length(1), // sep
-        Constraint::Length(1), // phase
-        Constraint::Length(4), // big time (HalfHeight = 4 rows)
-        Constraint::Length(1), // sep
-        Constraint::Length(1), // gauge
-        Constraint::Length(1), // sep
-        Constraint::Length(1), // session dots
-        Constraint::Length(1), // sep
-        Constraint::Length(1), // stats
-        Constraint::Length(1), // sep
-        Constraint::Length(1), // help
+        Constraint::Length(ROW_HEIGHT),      // title
+        Constraint::Length(ROW_HEIGHT),      // separator
+        Constraint::Length(ROW_HEIGHT),      // phase
+        Constraint::Length(BIG_TIME_HEIGHT), // big time
+        Constraint::Length(ROW_HEIGHT),      // separator
+        Constraint::Length(ROW_HEIGHT),      // gauge
+        Constraint::Length(ROW_HEIGHT),      // separator
+        Constraint::Length(ROW_HEIGHT),      // session dots
+        Constraint::Length(ROW_HEIGHT),      // separator
+        Constraint::Length(ROW_HEIGHT),      // stats
+        Constraint::Length(ROW_HEIGHT),      // separator
+        Constraint::Length(ROW_HEIGHT),      // help
     ])
     .areas(inner);
 
@@ -91,7 +110,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     frame.render_widget(title, title_area);
 
     // Separator helper
-    let sep_line = "\u{2500}".repeat(inner.width as usize);
+    let sep_line = HORIZONTAL_LINE.repeat(inner.width as usize);
     let sep_style = Style::default().fg(bg_dim);
     let render_sep = |frame: &mut Frame, area: Rect, line: &str, style: Style| {
         frame.render_widget(
@@ -104,7 +123,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     // Phase
     let pause_indicator = if app.timer.paused {
         Span::styled(
-            " PAUSED",
+            PAUSED_LABEL,
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::SLOW_BLINK),
@@ -144,7 +163,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     let gauge = Gauge::default()
         .gauge_style(Style::default().fg(color).bg(bg_dim))
         .ratio(progress.clamp(0.0, 1.0))
-        .label(format!("{:.0}%", progress * 100.0));
+        .label(format!("{:.0}%", progress * PERCENT_SCALE));
     frame.render_widget(gauge, gauge_area);
 
     render_sep(frame, sep3, &sep_line, sep_style);
@@ -152,20 +171,20 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     // Session dots
     let total = app.timer.config.sessions;
     let current = app.timer.current_session;
-    let session_widget = if total <= u32::from(session_dots_area.width / 2) {
+    let session_widget = if total <= u32::from(session_dots_area.width / SESSION_DOT_WIDTH) {
         let dots: Vec<Span> = (1..=total)
             .map(|i| {
                 if i < current || (i == current && app.timer.phase != Phase::Work) {
-                    Span::styled("\u{25cf} ", Style::default().fg(color))
+                    Span::styled(COMPLETED_SESSION_DOT, Style::default().fg(color))
                 } else if i == current {
                     Span::styled(
-                        "\u{25ce} ",
+                        CURRENT_SESSION_DOT,
                         Style::default()
                             .fg(Color::White)
                             .add_modifier(Modifier::BOLD),
                     )
                 } else {
-                    Span::styled("\u{25cb} ", Style::default().fg(Color::DarkGray))
+                    Span::styled(FUTURE_SESSION_DOT, Style::default().fg(Color::DarkGray))
                 }
             })
             .collect();
@@ -181,8 +200,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
 
     // Today's stats
     let (pomos, minutes) = app.today_stats();
-    let hours = minutes / 60;
-    let mins = minutes % 60;
+    let hours = minutes / MINUTES_PER_HOUR;
+    let mins = minutes % MINUTES_PER_HOUR;
     let stats_widget = Paragraph::new(Line::from(vec![
         Span::styled(
             format!("{} pomodoros", pomos),
@@ -202,14 +221,14 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     // Help
     let help = Paragraph::new(Line::from(vec![
         Span::styled(
-            "q",
+            QUIT_KEY.to_string(),
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),
         ),
         Span::styled(" quit  ", Style::default().fg(Color::DarkGray)),
         Span::styled(
-            "p",
+            PAUSE_KEY.to_string(),
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),
@@ -223,21 +242,21 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         ),
         Span::styled(" pause  ", Style::default().fg(Color::DarkGray)),
         Span::styled(
-            "s",
+            SKIP_KEY.to_string(),
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),
         ),
         Span::styled(" skip  ", Style::default().fg(Color::DarkGray)),
         Span::styled(
-            "w",
+            WORK_KEY.to_string(),
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),
         ),
         Span::styled("/", Style::default().fg(Color::DarkGray)),
         Span::styled(
-            "b",
+            BREAK_KEY.to_string(),
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),

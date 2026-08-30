@@ -1,5 +1,9 @@
 use std::time::{Duration, Instant};
 
+use crate::constants::SECONDS_PER_MINUTE;
+
+const FIRST_SESSION: u32 = 1;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Phase {
     Work,
@@ -41,7 +45,7 @@ impl Timer {
         Self {
             config,
             phase: Phase::Work,
-            current_session: 1,
+            current_session: FIRST_SESSION,
             remaining: duration,
             total: duration,
             paused: false,
@@ -97,7 +101,7 @@ impl Timer {
                 self.total = self.remaining;
             }
             Phase::LongBreak => {
-                self.current_session = 1;
+                self.current_session = FIRST_SESSION;
                 self.phase = Phase::Work;
                 self.remaining = Duration::from_secs(self.config.work_secs);
                 self.total = self.remaining;
@@ -152,7 +156,11 @@ impl Timer {
 
     pub fn remaining_display(&self) -> String {
         let secs = self.display_seconds();
-        format!("{:02}:{:02}", secs / 60, secs % 60)
+        format!(
+            "{:02}:{:02}",
+            secs / SECONDS_PER_MINUTE,
+            secs % SECONDS_PER_MINUTE
+        )
     }
 
     pub(crate) fn display_seconds(&self) -> u64 {

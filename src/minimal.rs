@@ -4,33 +4,39 @@ use crossterm::{cursor, execute};
 use std::io::{self, Write};
 
 use crate::app::App;
-use crate::constants::{MINI_BAR_WIDTH, TICK_RATE};
+use crate::constants::{FULL_BLOCK, MINI_BAR_WIDTH, PAUSED_LABEL, TICK_RATE};
 use crate::timer::{Phase, TimerConfig};
+
+const ANSI_RED: &str = "\x1b[31m";
+const ANSI_GREEN: &str = "\x1b[32m";
+const ANSI_BLUE: &str = "\x1b[34m";
+const ANSI_RESET: &str = "\x1b[0m";
+const ANSI_CLEAR_TO_END: &str = "\x1b[K";
+const LIGHT_SHADE: &str = "\u{2591}";
 
 fn phase_color_code(phase: Phase) -> &'static str {
     match phase {
-        Phase::Work => "\x1b[31m",      // red
-        Phase::Break => "\x1b[32m",     // green
-        Phase::LongBreak => "\x1b[34m", // blue
+        Phase::Work => ANSI_RED,
+        Phase::Break => ANSI_GREEN,
+        Phase::LongBreak => ANSI_BLUE,
     }
 }
 
 fn render_line(app: &App) -> io::Result<()> {
-    let reset = "\x1b[0m";
     let color = phase_color_code(app.timer.phase);
     let progress = app.timer.progress();
     let filled = (progress * MINI_BAR_WIDTH as f64) as usize;
     let empty = MINI_BAR_WIDTH - filled;
     let bar = format!(
         "{}{}{}",
-        "\u{2588}".repeat(filled),
-        "\u{2591}".repeat(empty),
-        reset
+        FULL_BLOCK.repeat(filled),
+        LIGHT_SHADE.repeat(empty),
+        ANSI_RESET
     );
-    let pause = if app.timer.paused { " PAUSED" } else { "" };
+    let pause = if app.timer.paused { PAUSED_LABEL } else { "" };
 
     let line = format!(
-        "\r{}{} [{}] {}{} ({}/{}){}\x1b[K",
+        "\r{}{} [{}] {}{} ({}/{}){}{}",
         color,
         app.timer.phase.label(),
         app.timer.remaining_display(),
@@ -39,10 +45,11 @@ fn render_line(app: &App) -> io::Result<()> {
         app.timer.current_session,
         app.timer.config.sessions,
         pause,
+        ANSI_CLEAR_TO_END,
     );
 
     let mut stdout = io::stdout();
-    write!(stdout, "{}{}", line, reset)?;
+    write!(stdout, "{}{}", line, ANSI_RESET)?;
     stdout.flush()
 }
 

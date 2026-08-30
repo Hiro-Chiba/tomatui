@@ -1,16 +1,22 @@
 use clap::{Parser, Subcommand};
 
-const MAX_HISTORY_DAYS: u32 = 10 * 366;
+use crate::constants::SECONDS_PER_MINUTE;
+
+const DEFAULT_HISTORY_DAYS: u32 = 7;
+const MAX_HISTORY_DAYS: u32 = 3660;
+const POSITIVE_WHOLE_NUMBER_ERROR: &str = "must be a positive whole number";
+const MINIMUM_VALUE_ERROR: &str = "must be at least 1";
+const VALUE_TOO_LARGE_ERROR: &str = "is too large";
 
 fn parse_minutes(value: &str) -> Result<u64, String> {
     let minutes = value
         .parse::<u64>()
-        .map_err(|_| "must be a positive whole number".to_string())?;
+        .map_err(|_| POSITIVE_WHOLE_NUMBER_ERROR.to_string())?;
     if minutes == 0 {
-        return Err("must be at least 1".to_string());
+        return Err(MINIMUM_VALUE_ERROR.to_string());
     }
-    if minutes.checked_mul(60).is_none() {
-        return Err("is too large".to_string());
+    if minutes.checked_mul(SECONDS_PER_MINUTE).is_none() {
+        return Err(VALUE_TOO_LARGE_ERROR.to_string());
     }
     Ok(minutes)
 }
@@ -18,9 +24,9 @@ fn parse_minutes(value: &str) -> Result<u64, String> {
 fn parse_positive_u32(value: &str) -> Result<u32, String> {
     let number = value
         .parse::<u32>()
-        .map_err(|_| "must be a positive whole number".to_string())?;
+        .map_err(|_| POSITIVE_WHOLE_NUMBER_ERROR.to_string())?;
     if number == 0 {
-        return Err("must be at least 1".to_string());
+        return Err(MINIMUM_VALUE_ERROR.to_string());
     }
     Ok(number)
 }
@@ -34,7 +40,7 @@ fn parse_history_days(value: &str) -> Result<u32, String> {
 }
 
 #[derive(Parser)]
-#[command(name = "tomatui", version, about = "Terminal Pomodoro Timer")]
+#[command(version, about = "Terminal Pomodoro Timer")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -99,8 +105,8 @@ pub enum StatsCommands {
     Today,
     /// Show daily history
     History {
-        /// Number of days to show (maximum 3660)
-        #[arg(short, long, default_value_t = 7, value_parser = parse_history_days)]
+        /// Number of days to show
+        #[arg(short, long, default_value_t = DEFAULT_HISTORY_DAYS, value_parser = parse_history_days)]
         days: u32,
     },
     /// Show all-time summary

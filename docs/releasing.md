@@ -22,8 +22,8 @@ Update the version in `Cargo.toml` and `Cargo.lock`, then add the release notes 
 Create and push an annotated tag that matches the Cargo version.
 
 ```bash
-git tag -a v0.1.1 -m "Release v0.1.1"
-git push origin v0.1.1
+git tag -a vX.Y.Z -m "Release vX.Y.Z"
+git push origin vX.Y.Z
 ```
 
 Approve the `release` environment deployment. The workflow verifies the tag and version, runs checks on all supported operating systems, packages and publishes the crate, and creates the GitHub Release.

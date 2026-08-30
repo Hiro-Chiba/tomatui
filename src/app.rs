@@ -1,11 +1,17 @@
 use std::time::Instant;
 
-use crate::constants::DATE_FORMAT;
+use crate::constants::{
+    APP_DISPLAY_NAME, BREAK_KEY, DATE_FORMAT, PAUSE_KEY, QUIT_KEY, SECONDS_PER_MINUTE, SKIP_KEY,
+    SPACE_KEY, WORK_KEY,
+};
 use crate::notification::{bell, notify};
 use crate::stats::record_pomodoro;
 use crate::timer::{Phase, Timer, TimerConfig};
 
 const STATS_CACHE_SECS: u64 = 30;
+const WORK_COMPLETE_MESSAGE: &str = "Work session complete! Time for a break.";
+const WORK_SKIPPED_MESSAGE: &str = "Work session skipped.";
+const BREAK_COMPLETE_MESSAGE: &str = "Break is over! Time to work.";
 
 pub struct App {
     pub timer: Timer,
@@ -44,7 +50,7 @@ impl App {
         bell();
 
         if self.timer.phase == Phase::Work && !self.timer.skipped {
-            let work_minutes = self.timer.config.work_secs / 60;
+            let work_minutes = self.timer.config.work_secs / SECONDS_PER_MINUTE;
             match record_pomodoro(work_minutes) {
                 Ok(today_stats) => {
                     self.cached_stats = today_stats;
@@ -54,11 +60,11 @@ impl App {
                     eprintln!("Failed to record pomodoro: {}", e);
                 }
             }
-            notify("Tomatui", "Work session complete! Time for a break.");
+            notify(APP_DISPLAY_NAME, WORK_COMPLETE_MESSAGE);
         } else if self.timer.phase == Phase::Work {
-            notify("Tomatui", "Work session skipped.");
+            notify(APP_DISPLAY_NAME, WORK_SKIPPED_MESSAGE);
         } else {
-            notify("Tomatui", "Break is over! Time to work.");
+            notify(APP_DISPLAY_NAME, BREAK_COMPLETE_MESSAGE);
         }
 
         self.timer.advance_phase();
@@ -66,11 +72,11 @@ impl App {
 
     pub fn on_key(&mut self, key: char) {
         match key {
-            'q' => self.should_quit = true,
-            'p' | ' ' => self.timer.toggle_pause(),
-            's' => self.timer.skip(),
-            'w' => self.timer.switch_to_work(),
-            'b' => self.timer.switch_to_break(),
+            QUIT_KEY => self.should_quit = true,
+            PAUSE_KEY | SPACE_KEY => self.timer.toggle_pause(),
+            SKIP_KEY => self.timer.skip(),
+            WORK_KEY => self.timer.switch_to_work(),
+            BREAK_KEY => self.timer.switch_to_break(),
             _ => {}
         }
     }

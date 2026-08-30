@@ -3,15 +3,23 @@ use std::io::{self, Write};
 #[cfg(all(not(test), any(target_os = "macos", target_os = "linux")))]
 use std::process::Command;
 
+const TERMINAL_BELL: char = '\x07';
+#[cfg(all(not(test), any(target_os = "macos", target_os = "linux")))]
+const NOTIFICATION_THREAD_NAME: &str = "tomatui-notification";
+#[cfg(all(not(test), target_os = "macos"))]
+const MACOS_NOTIFICATION_COMMAND: &str = "osascript";
+#[cfg(all(not(test), target_os = "linux"))]
+const LINUX_NOTIFICATION_COMMAND: &str = "notify-send";
+
 pub fn bell() {
-    print!("\x07");
+    print!("{TERMINAL_BELL}");
     let _ = io::stdout().flush();
 }
 
 #[cfg(all(not(test), any(target_os = "macos", target_os = "linux")))]
 fn spawn_notification(mut command: Command) {
     let _ = std::thread::Builder::new()
-        .name("tomatui-notification".to_string())
+        .name(NOTIFICATION_THREAD_NAME.to_string())
         .spawn(move || {
             let _ = command.status();
         });
@@ -25,7 +33,7 @@ pub fn notify(title: &str, message: &str) {
         message.replace('"', "\\\""),
         title.replace('"', "\\\""),
     );
-    let mut command = Command::new("osascript");
+    let mut command = Command::new(MACOS_NOTIFICATION_COMMAND);
     command.arg("-e").arg(script);
     spawn_notification(command);
 }
@@ -33,7 +41,7 @@ pub fn notify(title: &str, message: &str) {
 /// Sends a best-effort notification without blocking the timer.
 #[cfg(all(not(test), target_os = "linux"))]
 pub fn notify(title: &str, message: &str) {
-    let mut command = Command::new("notify-send");
+    let mut command = Command::new(LINUX_NOTIFICATION_COMMAND);
     command.arg(title).arg(message);
     spawn_notification(command);
 }

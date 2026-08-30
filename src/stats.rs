@@ -6,7 +6,12 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use crate::constants::{APP_NAME, DATE_FORMAT};
+use crate::constants::{APP_NAME, DATE_FORMAT, FULL_BLOCK, MINUTES_PER_HOUR};
+
+const STATS_FILE_NAME: &str = "stats.json";
+const SUMMARY_SEPARATOR_WIDTH: usize = 30;
+const HISTORY_SEPARATOR_WIDTH: usize = 44;
+const MAX_HISTORY_BAR_WIDTH: u32 = 30;
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 pub struct DayStat {
@@ -48,7 +53,7 @@ fn stats_path() -> PathBuf {
     dirs::data_dir()
         .unwrap_or_else(|| PathBuf::from("."))
         .join(APP_NAME)
-        .join("stats.json")
+        .join(STATS_FILE_NAME)
 }
 
 fn load_stats_from(path: &Path) -> Result<Stats, Box<dyn Error>> {
@@ -93,11 +98,11 @@ pub fn print_today() -> Result<(), Box<dyn Error>> {
     let stats = load_stats()?;
     let today = Local::now().format(DATE_FORMAT).to_string();
     let (pomos, minutes) = stats.get_day(&today);
-    let h = minutes / 60;
-    let m = minutes % 60;
+    let h = minutes / MINUTES_PER_HOUR;
+    let m = minutes % MINUTES_PER_HOUR;
     println!("\n  Today ({})", today);
 
-    println!("  {}", "-".repeat(30));
+    println!("  {}", "-".repeat(SUMMARY_SEPARATOR_WIDTH));
     println!("  Pomodoros:   {}", pomos);
     println!("  Work time:   {}h {}m", h, m);
     println!();
@@ -107,8 +112,8 @@ pub fn print_today() -> Result<(), Box<dyn Error>> {
 pub fn print_summary() -> Result<(), Box<dyn Error>> {
     let stats = load_stats()?;
     let (total_pomos, total_minutes) = stats.total();
-    let h = total_minutes / 60;
-    let m = total_minutes % 60;
+    let h = total_minutes / MINUTES_PER_HOUR;
+    let m = total_minutes % MINUTES_PER_HOUR;
     let days_active = stats.days.len();
     let avg = if days_active > 0 {
         total_pomos as f64 / days_active as f64
@@ -117,7 +122,7 @@ pub fn print_summary() -> Result<(), Box<dyn Error>> {
     };
 
     println!("\n  All-time Summary");
-    println!("  {}", "-".repeat(30));
+    println!("  {}", "-".repeat(SUMMARY_SEPARATOR_WIDTH));
     println!("  Total pomodoros:  {}", total_pomos);
     println!("  Total work time:  {}h {}m", h, m);
     println!("  Active days:      {}", days_active);
@@ -131,7 +136,7 @@ pub fn print_history(days: u32) -> Result<(), Box<dyn Error>> {
     let today = Local::now().date_naive();
 
     println!("\n  Pomodoro History (last {} days)", days);
-    println!("  {}", "-".repeat(44));
+    println!("  {}", "-".repeat(HISTORY_SEPARATOR_WIDTH));
 
     let mut period_pomos = 0u32;
     let mut period_minutes = 0u64;
@@ -147,9 +152,9 @@ pub fn print_history(days: u32) -> Result<(), Box<dyn Error>> {
         };
 
         if let Some(day) = stats.days.get(&date) {
-            let hours = day.work_minutes / 60;
-            let mins = day.work_minutes % 60;
-            let bar = "\u{2588}".repeat(day.pomodoros.min(30) as usize);
+            let hours = day.work_minutes / MINUTES_PER_HOUR;
+            let mins = day.work_minutes % MINUTES_PER_HOUR;
+            let bar = FULL_BLOCK.repeat(day.pomodoros.min(MAX_HISTORY_BAR_WIDTH) as usize);
             println!(
                 "  {:<12} {:>2} pomos  {:>2}h {:>2}m  {}",
                 label, day.pomodoros, hours, mins, bar
@@ -161,9 +166,9 @@ pub fn print_history(days: u32) -> Result<(), Box<dyn Error>> {
         }
     }
 
-    println!("  {}", "-".repeat(44));
-    let total_h = period_minutes / 60;
-    let total_m = period_minutes % 60;
+    println!("  {}", "-".repeat(HISTORY_SEPARATOR_WIDTH));
+    let total_h = period_minutes / MINUTES_PER_HOUR;
+    let total_m = period_minutes % MINUTES_PER_HOUR;
     println!(
         "  Period total: {} pomodoros, {}h {}m\n",
         period_pomos, total_h, total_m
