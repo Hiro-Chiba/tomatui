@@ -65,7 +65,7 @@ macOSとLinuxのデスクトップ通知はbest effortです。Linuxでは`notif
 
 ## 開発
 
-開発環境はRust 1.98.0に固定しています。CIでは最低対応バージョンのRust 1.93も確認します。
+開発用toolchainは`rust-toolchain.toml`で固定しています。CIでは`Cargo.toml`に記載した最低対応バージョンも確認します。
 
 ```bash
 cargo fmt --check

@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   check:
-    name: Current toolchain (Rust 1.98 / ${{ matrix.label }})
+    name: Current toolchain (${{ matrix.label }})
     strategy:
       fail-fast: false
       matrix:
@@ -31,9 +31,16 @@ jobs:
       - run: cargo test --locked
 
   msrv:
-    name: Backward compatibility (Rust 1.93 / Ubuntu)
+    name: Minimum supported toolchain (Ubuntu)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: rustup toolchain install 1.93.0 --profile minimal --no-self-update
-      - run: cargo +1.93.0 check --locked --all-targets
+      - name: Read minimum Rust version
+        id: msrv
+        shell: bash
+        run: |
+          version="$(sed -n 's/^rust-version = "\(.*\)"$/\1/p' Cargo.toml)"
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - run: rustup toolchain install "${{ steps.msrv.outputs.version }}" --profile minimal --no-self-update
+      - run: cargo "+${{ steps.msrv.outputs.version }}" check --locked --all-targets

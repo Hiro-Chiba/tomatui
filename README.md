@@ -65,7 +65,7 @@ Desktop notifications are best effort on macOS and Linux. Linux requires `notify
 
 ## Development
 
-The repository uses Rust 1.98.0 for reproducible development. CI also verifies the declared minimum version, Rust 1.93.
+The development toolchain is pinned in `rust-toolchain.toml`. CI also verifies the minimum version declared in `Cargo.toml`.
 
 ```bash
 cargo fmt --check

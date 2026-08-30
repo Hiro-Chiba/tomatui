@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   check:
-    name: Current toolchain (Rust 1.98 / ${{ matrix.label }})
+    name: Current toolchain (${{ matrix.label }})
     strategy:
       fail-fast: false
       matrix:
