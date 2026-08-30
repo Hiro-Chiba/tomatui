@@ -1,5 +1,7 @@
 use clap::{Parser, Subcommand};
 
+const MAX_HISTORY_DAYS: u32 = 10 * 366;
+
 fn parse_minutes(value: &str) -> Result<u64, String> {
     let minutes = value
         .parse::<u64>()
@@ -21,6 +23,14 @@ fn parse_positive_u32(value: &str) -> Result<u32, String> {
         return Err("must be at least 1".to_string());
     }
     Ok(number)
+}
+
+fn parse_history_days(value: &str) -> Result<u32, String> {
+    let days = parse_positive_u32(value)?;
+    if days > MAX_HISTORY_DAYS {
+        return Err(format!("must be at most {MAX_HISTORY_DAYS}"));
+    }
+    Ok(days)
 }
 
 #[derive(Parser)]
@@ -89,8 +99,8 @@ pub enum StatsCommands {
     Today,
     /// Show daily history
     History {
-        /// Number of days to show
-        #[arg(short, long, default_value_t = 7, value_parser = parse_positive_u32)]
+        /// Number of days to show (maximum 3660)
+        #[arg(short, long, default_value_t = 7, value_parser = parse_history_days)]
         days: u32,
     },
     /// Show all-time summary
@@ -122,5 +132,35 @@ mod tests {
         assert!(
             Cli::try_parse_from(["tomatui", "start", "--work", &u64::MAX.to_string(),]).is_err()
         );
+    }
+
+    #[test]
+    fn history_days_use_safe_boundaries() {
+        for days in [1, MAX_HISTORY_DAYS] {
+            assert!(
+                Cli::try_parse_from(["tomatui", "stats", "history", "--days", &days.to_string(),])
+                    .is_ok()
+            );
+        }
+
+        for days in [MAX_HISTORY_DAYS + 1, u32::MAX] {
+            assert!(
+                Cli::try_parse_from(["tomatui", "stats", "history", "--days", &days.to_string(),])
+                    .is_err()
+            );
+        }
+    }
+
+    #[test]
+    fn history_defaults_to_seven_days() {
+        let cli = Cli::try_parse_from(["tomatui", "stats", "history"]).unwrap();
+        let Commands::Stats {
+            command: Some(StatsCommands::History { days }),
+        } = cli.command
+        else {
+            panic!("expected the history command");
+        };
+
+        assert_eq!(days, 7);
     }
 }
