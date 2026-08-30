@@ -1,6 +1,6 @@
 [package]
 name = "tomatui"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 authors = ["Hiro-Chiba"]
 description = "Terminal Pomodoro timer with TUI, minimal mode, and stats tracking"
