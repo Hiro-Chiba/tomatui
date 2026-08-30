@@ -17,6 +17,7 @@ Notable changes to Tomatui are recorded here.
 - Migrated the crate to Rust 2024 while keeping Rust 1.93 as the tested minimum version.
 - Pinned development and release checks to Rust 1.98.0 and updated GitHub Actions.
 - Replaced duplicated application values with named constants without changing the CLI or configuration format.
+- Standardized GitHub Releases with installation instructions, curated highlights, and generated change lists.
 
 ## [0.1.1] - 2026-08-30
 

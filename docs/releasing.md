@@ -26,4 +26,4 @@ git tag -a vX.Y.Z -m "Release vX.Y.Z"
 git push origin vX.Y.Z
 ```
 
-Approve the `release` environment deployment. The workflow verifies the tag and version, runs checks on all supported operating systems, packages and publishes the crate, and creates the GitHub Release.
+Approve the `release` environment deployment. The workflow verifies the tag and version, runs checks on all supported operating systems, packages and publishes the crate, and creates the GitHub Release. The release includes the Cargo install command, highlights from `CHANGELOG.md`, and GitHub's generated change list.
