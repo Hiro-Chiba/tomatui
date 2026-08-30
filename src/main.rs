@@ -11,7 +11,7 @@ mod ui;
 
 use clap::Parser;
 use cli::{Cli, Commands, StatsCommands};
-use config::{load_config, save_config, Config};
+use config::{Config, load_config, save_config};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();

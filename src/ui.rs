@@ -1,9 +1,9 @@
+use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
-use ratatui::style::{Color, Modifier, Style, Stylize};
+use ratatui::style::{Color, Modifier, Style};
 use ratatui::symbols::border;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Gauge, Padding, Paragraph};
-use ratatui::Frame;
 use tui_big_text::{BigText, PixelSize};
 
 use crate::app::App;
@@ -51,22 +51,34 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     let inner = outer_block.inner(outer);
     frame.render_widget(outer_block, outer);
 
-    let [title_area, sep1, phase_area, time_area, sep2, gauge_area, sep3, session_dots_area, sep4, stats_area, sep5, help_area] =
-        Layout::vertical([
-            Constraint::Length(1), // title
-            Constraint::Length(1), // sep
-            Constraint::Length(1), // phase
-            Constraint::Length(4), // big time (HalfHeight = 4 rows)
-            Constraint::Length(1), // sep
-            Constraint::Length(1), // gauge
-            Constraint::Length(1), // sep
-            Constraint::Length(1), // session dots
-            Constraint::Length(1), // sep
-            Constraint::Length(1), // stats
-            Constraint::Length(1), // sep
-            Constraint::Length(1), // help
-        ])
-        .areas(inner);
+    let [
+        title_area,
+        sep1,
+        phase_area,
+        time_area,
+        sep2,
+        gauge_area,
+        sep3,
+        session_dots_area,
+        sep4,
+        stats_area,
+        sep5,
+        help_area,
+    ] = Layout::vertical([
+        Constraint::Length(1), // title
+        Constraint::Length(1), // sep
+        Constraint::Length(1), // phase
+        Constraint::Length(4), // big time (HalfHeight = 4 rows)
+        Constraint::Length(1), // sep
+        Constraint::Length(1), // gauge
+        Constraint::Length(1), // sep
+        Constraint::Length(1), // session dots
+        Constraint::Length(1), // sep
+        Constraint::Length(1), // stats
+        Constraint::Length(1), // sep
+        Constraint::Length(1), // help
+    ])
+    .areas(inner);
 
     // Title
     let title = Paragraph::new(Line::from(Span::styled(

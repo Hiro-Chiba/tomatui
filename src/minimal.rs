@@ -81,13 +81,13 @@ pub fn run(config: TimerConfig) -> Result<(), Box<dyn std::error::Error>> {
 
             if event::poll(TICK_RATE)? {
                 redraw = true;
-                if let Event::Key(key) = event::read()? {
-                    if key.kind == KeyEventKind::Press {
-                        match key.code {
-                            KeyCode::Char(c) => app.on_key(c),
-                            KeyCode::Esc => app.should_quit = true,
-                            _ => {}
-                        }
+                if let Event::Key(key) = event::read()?
+                    && key.kind == KeyEventKind::Press
+                {
+                    match key.code {
+                        KeyCode::Char(c) => app.on_key(c),
+                        KeyCode::Esc => app.should_quit = true,
+                        _ => {}
                     }
                 }
             }
