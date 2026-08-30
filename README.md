@@ -10,21 +10,24 @@ A terminal Pomodoro timer with stats tracking.
 
 Work | Break | Long Break
 :---:|:---:|:---:
-![Work](assets/work.png) | ![Break](assets/break.png) | ![Long Break](assets/long_break.png)
+![Work](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/work.png) | ![Break](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/break.png) | ![Long Break](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/long_break.png)
 
 ## Features
 
 - Big-text timer display with progress bar
 - Minimal one-line mode (`-m`) for small terminals
 - Session tracking with visual dots
-- Daily/weekly/all-time statistics with persistent storage
-- Desktop notifications (macOS, Linux)
-- Configurable work/break durations and session count
+- Daily, weekly, and all-time statistics with persistent storage
+- Configurable work and break durations and session count
 
-## Install
+## Supported OS
+
+Linux, macOS, and Windows are supported. Tomatui requires Rust 1.93 or later.
+
+## Installation
 
 ```bash
-cargo install tomatui
+cargo install --locked tomatui
 ```
 
 ## Usage
@@ -42,7 +45,29 @@ tomatui config --reset     # Reset to defaults
 
 ## Keybindings
 
-`q` quit | `p`/`Space` pause | `s` skip | `w` work | `b` break
+`q`/`Esc` quit | `p`/`Space` pause | `s` skip | `w` work | `b` break
+
+## Configuration
+
+Defaults are 25 minutes of work, 5 minutes of break, 15 minutes of long break, and 4 sessions. The JSON fields are `work_minutes`, `break_minutes`, `long_break_minutes`, and `sessions`.
+
+Configuration is stored in the standard OS config directory under `tomatui/config.json`. This is `$XDG_CONFIG_HOME` or `~/.config` on Linux, `~/Library/Application Support` on macOS, and `%APPDATA%` on Windows. Run `tomatui config` to see the exact path.
+
+## Statistics
+
+Only completed work sessions are recorded. Skipped sessions are not included. Statistics are stored in the standard OS data directory under `tomatui/stats.json`, using `$XDG_DATA_HOME` or `~/.local/share` on Linux, `~/Library/Application Support` on macOS, and `%APPDATA%` on Windows.
+
+## Notifications
+
+Desktop notifications are best effort on macOS and Linux. Linux requires `notify-send`. Windows and systems without desktop notification support fall back to the terminal bell.
+
+## Development
+
+```bash
+cargo fmt --check
+cargo clippy -- -D warnings
+cargo test
+```
 
 ## License
 
