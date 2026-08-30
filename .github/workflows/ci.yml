@@ -11,10 +11,17 @@ permissions:
 
 jobs:
   check:
+    name: Current toolchain (Rust 1.98 / ${{ matrix.label }})
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            label: Ubuntu
+          - os: macos-latest
+            label: macOS
+          - os: windows-latest
+            label: Windows
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -24,7 +31,7 @@ jobs:
       - run: cargo test --locked
 
   msrv:
-    name: Check Rust 1.93
+    name: Backward compatibility (Rust 1.93 / Ubuntu)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
