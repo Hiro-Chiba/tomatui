@@ -6,6 +6,8 @@
 
 [English](README.md)
 
+[変更履歴](CHANGELOG.md)
+
 Rust製のターミナルポモドーロタイマー。
 
 Work | Break | Long Break
@@ -65,7 +67,7 @@ macOSとLinuxのデスクトップ通知はbest effortです。Linuxでは`notif
 
 ```bash
 cargo fmt --check
-cargo clippy -- -D warnings
+cargo clippy --all-targets -- -D warnings
 cargo test
 ```
 

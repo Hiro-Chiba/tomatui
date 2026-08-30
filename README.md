@@ -6,6 +6,8 @@
 
 [Japanese / 日本語](README_ja.md)
 
+[Changelog](CHANGELOG.md)
+
 A terminal Pomodoro timer with stats tracking.
 
 Work | Break | Long Break
@@ -65,7 +67,7 @@ Desktop notifications are best effort on macOS and Linux. Linux requires `notify
 
 ```bash
 cargo fmt --check
-cargo clippy -- -D warnings
+cargo clippy --all-targets -- -D warnings
 cargo test
 ```
 
