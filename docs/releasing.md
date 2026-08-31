@@ -19,6 +19,8 @@ This setup gives the workflow a short-lived publishing token and avoids storing 
 
 Update the version in `Cargo.toml` and `Cargo.lock`, then add the release notes and date to `CHANGELOG.md`. Commit the changes to `main` and wait for CI to pass.
 
+Add the `dependencies` label to dependency-only pull requests created by maintainers. Dependabot pull requests are excluded automatically. Their version changes are listed by `whats-changed`, so the generated pull request list does not repeat them.
+
 Create and push an annotated tag that matches the Cargo version.
 
 ```bash
@@ -26,4 +28,4 @@ git tag -a vX.Y.Z -m "Release vX.Y.Z"
 git push origin vX.Y.Z
 ```
 
-Approve the `release` environment deployment. The workflow verifies the tag and version, runs checks on all supported operating systems, packages and publishes the crate, and creates the GitHub Release. The release includes the Cargo install command, highlights from `CHANGELOG.md`, direct dependency upgrades and removals since the previous tag, and GitHub's generated change list.
+Approve the `release` environment deployment. The workflow verifies the tag and version, runs checks on all supported operating systems, packages and publishes the crate, and creates the GitHub Release. The release includes the Cargo install command, direct dependency upgrades and removals since the previous tag, and GitHub's generated list of non-dependency pull requests.

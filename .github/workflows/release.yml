@@ -90,18 +90,10 @@ jobs:
         shell: bash
         run: |
           version="${GITHUB_REF_NAME#v}"
-          highlights="$(awk -v version="$version" '
-            index($0, "## [" version "]") == 1 { found = 1; next }
-            found && /^## \[/ { exit }
-            found { print }
-          ' CHANGELOG.md)"
-          test -n "$highlights"
-
           {
             printf '## Install\n\n```bash\ncargo install tomatui --version %s\n```\n\n' "$version"
-            printf '## Highlights\n%s' "$highlights"
             if [ -s dependency_changes.md ]; then
-              printf '\n\n## Dependency changes\n\n'
+              printf '## Dependency changes\n\n'
               sed 's/^## Package:/### Package:/' dependency_changes.md
             fi
           } > release-notes.md
