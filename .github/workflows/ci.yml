@@ -44,3 +44,15 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
       - run: rustup toolchain install "${{ steps.msrv.outputs.version }}" --profile minimal --no-self-update
       - run: cargo "+${{ steps.msrv.outputs.version }}" check --locked --all-targets
+
+  required:
+    # Keep this name stable because the main branch ruleset requires it.
+    name: check
+    needs: [check, msrv]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required jobs
+        run: |
+          test "${{ needs.check.result }}" = "success"
+          test "${{ needs.msrv.result }}" = "success"
