@@ -12,6 +12,10 @@ Completed focus sessions are saved locally so you can review your progress.
 
 ![Tomatui focus timer with a large countdown and progress bar](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/work.png)
 
+The one-line mode counts down, pauses with `p`, and resumes with `p`. Press `q` to quit.
+
+![Tomatui one-line timer counting down, pausing, and resuming](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/minimal.gif)
+
 ```bash
 tomatui start -m       # One-line timer beside your editor
 tomatui start          # Big-text timer
@@ -28,6 +32,8 @@ Download the archive for your computer from the [latest release](https://github.
 | macOS, Intel | [tomatui-x86_64-apple-darwin.tar.gz](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-apple-darwin.tar.gz) |
 | Linux, x86-64 | [tomatui-x86_64-unknown-linux-gnu.tar.gz](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-unknown-linux-gnu.tar.gz) |
 | Windows, x86-64 | [tomatui-x86_64-pc-windows-msvc.zip](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-pc-windows-msvc.zip) |
+
+The Linux binary requires glibc 2.39 or newer. For older glibc versions or musl-based systems, use the Cargo installation below to build for your environment.
 
 On macOS or Linux, extract the archive and open a terminal in the extracted folder:
 
