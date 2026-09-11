@@ -4,6 +4,16 @@ Notable changes to Tomatui are recorded here.
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-09-12
+
+### Added
+
+- Prebuilt binaries for macOS (Apple Silicon and Intel), Linux (x86-64), and Windows (x86-64), with SHA256 checksums.
+
+### Changed
+
+- Put the editor-side timer workflow and Rust-free installation instructions at the start of both READMEs.
+
 ## [0.1.3] - 2026-09-12
 
 ### Changed
@@ -44,7 +54,8 @@ Notable changes to Tomatui are recorded here.
 
 - Initial crates.io release.
 
-[Unreleased]: https://github.com/Hiro-Chiba/tomatui/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/Hiro-Chiba/tomatui/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.4
 [0.1.3]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.3
 [0.1.2]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.1

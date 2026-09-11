@@ -32,9 +32,50 @@ jobs:
       - run: cargo clippy --locked --all-targets -- -D warnings
       - run: cargo test --locked
 
+  build:
+    name: Build (${{ matrix.target }})
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install --no-self-update
+      - run: rustup target add ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+      - run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Create archive (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p dist
+          tar -czf dist/tomatui-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release tomatui
+      - name: Create archive (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path dist
+          Compress-Archive -Path target/${{ matrix.target }}/release/tomatui.exe -DestinationPath dist/tomatui-${{ matrix.target }}.zip
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tomatui-${{ matrix.target }}
+          path: dist/*
+          if-no-files-found: error
+
   publish-crate:
     name: Publish crate
-    needs: check
+    needs: build
     runs-on: ubuntu-latest
     environment: release
     permissions:
@@ -73,6 +114,14 @@ jobs:
         with:
           fetch-depth: 0
       - run: rustup toolchain install --no-self-update
+      - name: Download binaries
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Create checksums
+        working-directory: artifacts
+        run: sha256sum tomatui-* > checksums-sha256.txt
       - name: Generate dependency changes
         env:
           TAG: ${{ github.ref_name }}
@@ -90,8 +139,12 @@ jobs:
         shell: bash
         run: |
           version="${GITHUB_REF_NAME#v}"
+          # Markdown backticks below are literal, not shell substitutions.
+          # shellcheck disable=SC2016
           {
-            printf '## Install\n\n```bash\ncargo install tomatui --version %s\n```\n\n' "$version"
+            printf '## Install\n\nDownload the archive for your OS from the assets below, extract it, and run `./tomatui start -m` (Windows: `.\\tomatui.exe start -m`). Rust is not required.\n\n'
+            printf '| OS | Archive |\n| --- | --- |\n| macOS (Apple Silicon) | `tomatui-aarch64-apple-darwin.tar.gz` |\n| macOS (Intel) | `tomatui-x86_64-apple-darwin.tar.gz` |\n| Linux (x86-64) | `tomatui-x86_64-unknown-linux-gnu.tar.gz` |\n| Windows (x86-64) | `tomatui-x86_64-pc-windows-msvc.zip` |\n\n'
+            printf 'Or build from source with Cargo:\n\n```bash\ncargo install --locked tomatui --version %s\n```\n\n' "$version"
             if [ -s dependency_changes.md ]; then
               printf '## Dependency changes\n\n'
               sed 's/^## Package:/### Package:/' dependency_changes.md
@@ -99,6 +152,7 @@ jobs:
           } > release-notes.md
 
           gh release create "$GITHUB_REF_NAME" \
+            artifacts/* \
             --verify-tag \
             --generate-notes \
             --title "$GITHUB_REF_NAME" \
