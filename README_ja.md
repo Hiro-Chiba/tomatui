@@ -4,15 +4,53 @@
 [![CI](https://github.com/Hiro-Chiba/tomatui/actions/workflows/ci.yml/badge.svg)](https://github.com/Hiro-Chiba/tomatui/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-[English](README.md)
+エディタの隣に置いて、ターミナルを離れず集中できるポモドーロタイマーです。
+小さなペインでは1行表示、広い画面では大きな時計を使えます。
+完了した集中セッションはローカルに保存され、あとから振り返れます。
 
-[変更履歴](CHANGELOG.md)
+[OS別ダウンロード](https://github.com/Hiro-Chiba/tomatui/releases/latest) · [English](README.md) · [変更履歴](CHANGELOG.md)
 
-Rust製のターミナルポモドーロタイマー。
+![大きな残り時間とプログレスバーを表示する Tomatui](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/work.png)
 
-Work | Break | Long Break
-:---:|:---:|:---:
-![Work](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/work.png) | ![Break](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/break.png) | ![Long Break](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/long_break.png)
+```bash
+tomatui start -m       # エディタの隣で使う1行タイマー
+tomatui start          # 大きな時計で表示
+tomatui stats history  # 完了した集中セッションを振り返る
+```
+
+## Rust なしで試す
+
+[最新リリース](https://github.com/Hiro-Chiba/tomatui/releases/latest)から、お使いの環境に合うファイルをダウンロードしてください。配布版の実行には Rust や Cargo のインストールは不要です。
+
+| お使いの環境 | ダウンロード |
+| --- | --- |
+| macOS、Apple Silicon | [tomatui-aarch64-apple-darwin.tar.gz](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-aarch64-apple-darwin.tar.gz) |
+| macOS、Intel | [tomatui-x86_64-apple-darwin.tar.gz](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-apple-darwin.tar.gz) |
+| Linux、x86-64 | [tomatui-x86_64-unknown-linux-gnu.tar.gz](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-unknown-linux-gnu.tar.gz) |
+| Windows、x86-64 | [tomatui-x86_64-pc-windows-msvc.zip](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-pc-windows-msvc.zip) |
+
+macOS・Linux はファイルを展開し、そのフォルダでターミナルを開いて実行します。
+
+```bash
+./tomatui start -m
+```
+
+Windows は ZIP を展開し、そのフォルダで PowerShell を開いて実行します。
+
+```powershell
+.\tomatui.exe start -m
+```
+
+`q` で終了、`p` で一時停止できます。どのフォルダからでも `tomatui` と入力して使いたい場合は、実行ファイルを `PATH` の通ったディレクトリに配置してください。
+
+### Cargo でインストール
+
+Rust をお使いの場合は、Rust 1.93 以降でビルドしてインストールできます。
+
+```bash
+cargo install --locked tomatui
+tomatui start -m
+```
 
 ## 特徴
 
@@ -21,16 +59,6 @@ Work | Break | Long Break
 - セッション進捗をドットで可視化
 - 日別、週別、全期間の統計と永続保存
 - 作業時間、休憩時間、セッション数のカスタマイズ
-
-## 対応OS
-
-Linux、macOS、Windowsに対応しています。Rust 1.93以降が必要です。
-
-## インストール
-
-```bash
-cargo install --locked tomatui
-```
 
 ## 使い方
 

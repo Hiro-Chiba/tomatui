@@ -4,15 +4,53 @@
 [![CI](https://github.com/Hiro-Chiba/tomatui/actions/workflows/ci.yml/badge.svg)](https://github.com/Hiro-Chiba/tomatui/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-[Japanese / 日本語](README_ja.md)
+Keep a Pomodoro timer beside your editor, without leaving the terminal.
+Use a single line in a small terminal pane, or switch to the big-text display.
+Completed focus sessions are saved locally so you can review your progress.
 
-[Changelog](CHANGELOG.md)
+[Download for your OS](https://github.com/Hiro-Chiba/tomatui/releases/latest) · [日本語](README_ja.md) · [Changelog](CHANGELOG.md)
 
-A terminal Pomodoro timer with stats tracking.
+![Tomatui focus timer with a large countdown and progress bar](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/work.png)
 
-Work | Break | Long Break
-:---:|:---:|:---:
-![Work](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/work.png) | ![Break](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/break.png) | ![Long Break](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/long_break.png)
+```bash
+tomatui start -m       # One-line timer beside your editor
+tomatui start          # Big-text timer
+tomatui stats history  # Review completed focus sessions
+```
+
+## Try it without Rust
+
+Download the archive for your computer from the [latest release](https://github.com/Hiro-Chiba/tomatui/releases/latest). The binaries run without installing Rust or Cargo.
+
+| Your computer | Archive |
+| --- | --- |
+| macOS, Apple Silicon | [tomatui-aarch64-apple-darwin.tar.gz](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-aarch64-apple-darwin.tar.gz) |
+| macOS, Intel | [tomatui-x86_64-apple-darwin.tar.gz](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-apple-darwin.tar.gz) |
+| Linux, x86-64 | [tomatui-x86_64-unknown-linux-gnu.tar.gz](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-unknown-linux-gnu.tar.gz) |
+| Windows, x86-64 | [tomatui-x86_64-pc-windows-msvc.zip](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-pc-windows-msvc.zip) |
+
+On macOS or Linux, extract the archive and open a terminal in the extracted folder:
+
+```bash
+./tomatui start -m
+```
+
+On Windows, extract the ZIP, open PowerShell in the extracted folder, and run:
+
+```powershell
+.\tomatui.exe start -m
+```
+
+Press `q` to quit or `p` to pause. To run `tomatui` from any folder, move the executable to a directory on your `PATH`.
+
+### Install with Cargo
+
+If you already use Rust, build and install with Rust 1.93 or later:
+
+```bash
+cargo install --locked tomatui
+tomatui start -m
+```
 
 ## Features
 
@@ -21,16 +59,6 @@ Work | Break | Long Break
 - Session tracking with visual dots
 - Daily, weekly, and all-time statistics with persistent storage
 - Configurable work and break durations and session count
-
-## Supported OS
-
-Linux, macOS, and Windows are supported. Tomatui requires Rust 1.93 or later.
-
-## Installation
-
-```bash
-cargo install --locked tomatui
-```
 
 ## Usage
 

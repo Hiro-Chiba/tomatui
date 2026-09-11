@@ -1,6 +1,6 @@
 # Releasing
 
-Tomatui releases use a Git tag, crates.io Trusted Publishing, and a matching GitHub Release. Prebuilt binaries and GitHub Packages are not part of the release process.
+Tomatui releases use a Git tag, crates.io Trusted Publishing, and a matching GitHub Release. Each GitHub Release includes prebuilt binaries for macOS on Apple Silicon and Intel, Linux on x86-64, and Windows on x86-64, plus SHA256 checksums. GitHub Packages is not part of the release process.
 
 ## One-time setup
 
@@ -28,4 +28,6 @@ git tag -a vX.Y.Z -m "Release vX.Y.Z"
 git push origin vX.Y.Z
 ```
 
-Approve the `release` environment deployment. The workflow verifies the tag and version, runs checks on all supported operating systems, packages and publishes the crate, and creates the GitHub Release. The release includes the Cargo install command, direct dependency upgrades and removals since the previous tag, and GitHub's generated list of non-dependency pull requests.
+Wait for the checks and all four binary builds to pass, then approve the `release` environment deployment. The workflow verifies the tag and version, packages and publishes the crate, and creates the GitHub Release with the archives and checksums attached. The release includes the Cargo install command, direct dependency upgrades and removals since the previous tag, and GitHub's generated list of non-dependency pull requests.
+
+Archive names omit the version so that the README links through `releases/latest/download/` keep working for future releases. Each archive contains just `tomatui` or `tomatui.exe`. Keep the archive names in the workflow and both READMEs in sync.
