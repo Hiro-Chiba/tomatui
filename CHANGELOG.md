@@ -4,6 +4,12 @@ Notable changes to Tomatui are recorded here.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-09-12
+
+### Changed
+
+- Updated the development and release toolchain to Rust 1.98.1.
+
 ## [0.1.2] - 2026-08-30
 
 ### Fixed
@@ -38,6 +44,7 @@ Notable changes to Tomatui are recorded here.
 
 - Initial crates.io release.
 
-[Unreleased]: https://github.com/Hiro-Chiba/tomatui/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/Hiro-Chiba/tomatui/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.3
 [0.1.2]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.1
