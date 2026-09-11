@@ -4,6 +4,13 @@ Notable changes to Tomatui are recorded here.
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-09-12
+
+### Changed
+
+- Added a recording of the one-line timer, including pause, resume, and quit, to both READMEs.
+- Documented the Linux binary's glibc 2.39 requirement and the Cargo installation alternative.
+
 ## [0.1.4] - 2026-09-12
 
 ### Added
@@ -54,7 +61,8 @@ Notable changes to Tomatui are recorded here.
 
 - Initial crates.io release.
 
-[Unreleased]: https://github.com/Hiro-Chiba/tomatui/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/Hiro-Chiba/tomatui/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.4
 [0.1.3]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.3
 [0.1.2]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.2
