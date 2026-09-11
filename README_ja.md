@@ -12,6 +12,10 @@
 
 ![大きな残り時間とプログレスバーを表示する Tomatui](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/work.png)
 
+1行表示でもカウントダウンでき、`p` で一時停止・再開、`q` で終了できます。
+
+![1行表示の Tomatui がカウントダウンし、一時停止してから再開する実演](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/minimal.gif)
+
 ```bash
 tomatui start -m       # エディタの隣で使う1行タイマー
 tomatui start          # 大きな時計で表示
@@ -28,6 +32,8 @@ tomatui stats history  # 完了した集中セッションを振り返る
 | macOS、Intel | [tomatui-x86_64-apple-darwin.tar.gz](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-apple-darwin.tar.gz) |
 | Linux、x86-64 | [tomatui-x86_64-unknown-linux-gnu.tar.gz](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-unknown-linux-gnu.tar.gz) |
 | Windows、x86-64 | [tomatui-x86_64-pc-windows-msvc.zip](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-pc-windows-msvc.zip) |
+
+Linux の配布版には glibc 2.39 以降が必要です。古い glibc や musl を使う環境では、以下の Cargo の手順でお使いの環境向けにビルドしてください。
 
 macOS・Linux はファイルを展開し、そのフォルダでターミナルを開いて実行します。
 
