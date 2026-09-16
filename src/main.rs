@@ -24,6 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             long_break,
             sessions,
             on_end,
+            ..
         }) => {
             let mut cfg = load_config()?;
             cfg.work_minutes = work.unwrap_or(cfg.work_minutes);

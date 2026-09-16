@@ -7,23 +7,21 @@
 
 **A little focus timer beside your editor.**
 
-Keep your work, breaks, and completed sessions in the terminal. Use a big clock when you have room, or a single line in a small pane. Your focus history stays on your computer.
-
 [Download](https://github.com/Hiro-Chiba/tomatui/releases/latest) · [日本語](README_ja.md) · [Changelog](CHANGELOG.md)
 
-![Tomatui cycling through red work, green breaks, and a blue long break](assets/demo.gif)
+![Tomatui cycling through red work, green breaks, and a blue long break](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/demo.gif)
 
-An eight-second demo with waiting time skipped. Work is red, breaks are green, and long breaks are blue; the block bar fills as time passes. Recorded with saved one-minute work and break settings and `on_end=ask`; defaults remain 25 minutes of work and 5 minutes of rest. [Watch the MP4](assets/demo.mp4).
+An eight-second demo with waiting time skipped. Work is red, breaks are green, and long breaks are blue; the block bar fills as time passes. Recorded with saved one-minute work and break settings and `on_end=ask`; defaults remain 25 minutes of work and 5 minutes of rest. [Watch the MP4](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/demo.mp4).
 
-> This README previews the development version. The short launch commands, new display, and controls shown here are available from source. Published v0.1.5 still uses `tomatui start` or `tomatui start -m`; see the [changelog](CHANGELOG.md).
+Keep your work, breaks, and completed sessions in the terminal. Use a big clock when you have room, or a single line in a small pane. Your focus history stays on your computer.
 
 ## Get started
 
-With Rust 1.93 or later, install the published version and start a timer:
+With Rust 1.93 or later, install and start a timer:
 
 ```bash
 cargo install --locked tomatui
-tomatui start
+tomatui
 ```
 
 No Rust? [Download a binary for your OS](https://github.com/Hiro-Chiba/tomatui/releases/latest).
@@ -38,14 +36,14 @@ No Rust? [Download a binary for your OS](https://github.com/Hiro-Chiba/tomatui/r
 | Linux, x86-64 | [tomatui-x86_64-unknown-linux-gnu.tar.gz](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-unknown-linux-gnu.tar.gz) |
 | Windows, x86-64 | [tomatui-x86_64-pc-windows-msvc.zip](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-pc-windows-msvc.zip) |
 
-Extract the archive and open a terminal in that folder. On macOS or Linux, run `./tomatui start`. On Windows, open PowerShell and run `.\tomatui.exe start`. Press `q` to quit. Put the executable in a directory on your `PATH` to run `tomatui` from anywhere.
+Extract the archive and open a terminal in that folder. On macOS or Linux, run `./tomatui`. On Windows, open PowerShell and run `.\tomatui.exe`. Press `q` to quit. Put the executable in a directory on your `PATH` to run `tomatui` from anywhere.
 
 The Linux binary requires glibc 2.39 or newer. For older glibc or musl-based systems, install with Cargo to build for your environment. The prebuilt binaries do not require Rust or Cargo.
 
 </details>
 
 <details>
-<summary>Try the development version shown here</summary>
+<summary>Build from source</summary>
 
 With Rust 1.93 or later:
 
@@ -65,13 +63,16 @@ This installs the checkout as your `tomatui` executable. The repository pins its
 Use a single line in any terminal, or keep it in a small pane beside your editor. One-line mode uses the same timer, controls, and saved statistics as the full display.
 
 ```bash
-tomatui       # Full display
-tomatui -m    # One-line display
+tomatui          # Start with saved settings
+tomatui 30m      # Work for 30 minutes
+tomatui 45m 10m  # Work for 45 minutes, rest for 10
+tomatui -m       # One-line display
+tomatui 1h -m    # One hour in one-line mode
 ```
 
-![One-line Tomatui with pause, resume, and a one-minute extension](assets/minimal.gif)
+![One-line Tomatui with pause, resume, and a one-minute extension](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/minimal.gif)
 
-A four-second demo using the same saved settings, with waiting time skipped. [Watch the MP4](assets/minimal.mp4).
+A four-second demo using the same saved settings, with waiting time skipped. [Watch the MP4](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/minimal.mp4).
 
 ## Take the next break on your terms
 
@@ -84,7 +85,9 @@ tomatui config --on-end ask       # Save once: wait at each phase boundary
 tomatui                          # Use your saved settings
 ```
 
-To change your usual durations, use `tomatui config -w 30 -b 10`. For a single run, `tomatui --on-end quit` or `tomatui -w 30` overrides your saved settings.
+To change your usual durations, use `tomatui config -w 30 -b 10`. For a single run, `tomatui --on-end quit` or `tomatui 30m` overrides your saved settings.
+
+Durations accept whole minutes (`30` or `30m`) or whole hours (`1h`). Omitted durations use your saved settings; a launch command never changes those settings. `tomatui --help` shows examples.
 
 The default rhythm is 25 minutes of work, a 5-minute break, and a 15-minute long break after every four sessions. Exiting shows a summary of the work completed during that run.
 
@@ -110,7 +113,7 @@ tomatui stats history --days 30  # Last 30 days
 tomatui stats summary           # All-time summary
 ```
 
-![Tomatui statistics showing a sample week of completed sessions and focus time](assets/stats.png)
+![Tomatui statistics showing a sample week of completed sessions and focus time](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/stats.png)
 
 The screenshot uses sample data. Completed work includes any minutes added with `+`; skipped or interrupted work is not recorded. Skipping still advances the position in the work/break cycle, so the session indicator is a place in that cycle, not a count of completed work.
 
@@ -136,7 +139,7 @@ Desktop notifications are best effort on macOS and Linux. Linux requires `notify
 <details>
 <summary>Development</summary>
 
-See [architecture](docs/architecture.md) for timer and storage behavior, and [releasing](docs/releasing.md) for the release process. CI also checks the minimum Rust version declared in `Cargo.toml`. See [recording the demos](assets/README.md) to reproduce the GIFs and sample statistics.
+See [architecture](docs/architecture.md) for timer and storage behavior, and [releasing](docs/releasing.md) for the release process. CI also checks the minimum Rust version declared in `Cargo.toml`. See [recording the demos](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/README.md) to reproduce the GIFs and sample statistics.
 
 ```bash
 cargo fmt --check

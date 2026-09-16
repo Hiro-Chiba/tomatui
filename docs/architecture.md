@@ -1,6 +1,6 @@
 # Architecture
 
-Tomatui is a single binary. `Timer` owns the phase and countdown state, while `App` connects timer transitions to statistics and notifications. The TUI and minimal mode share the same `App` behavior. Running `tomatui` starts the TUI and `tomatui -m` starts minimal mode. Both load saved settings and accept optional overrides. The explicit `start` command remains supported.
+Tomatui is a single binary. `Timer` owns the phase and countdown state, while `App` connects timer transitions to statistics and notifications. The TUI and minimal mode share the same `App` behavior. Running `tomatui` starts the TUI and `tomatui -m` starts minimal mode. Both load saved settings and accept optional overrides. The explicit `start` command remains supported. Positional durations such as `tomatui 45m 10m` override work and break for one run. Durations accept whole minutes, with optional `m`, or whole hours with `h`. Specifying the same duration positionally and by flag is an error.
 
 ## State transitions
 

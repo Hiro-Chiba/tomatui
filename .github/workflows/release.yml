@@ -142,7 +142,8 @@ jobs:
           # Markdown backticks below are literal, not shell substitutions.
           # shellcheck disable=SC2016
           {
-            printf '## Install\n\nDownload the archive for your OS from the assets below, extract it, and run `./tomatui start -m` (Windows: `.\\tomatui.exe start -m`). Rust is not required.\n\n'
+            sed -n "/^## \[$version\]/,/^## \[/p" CHANGELOG.md | sed '1d;$d'
+            printf '\n## Install\n\nDownload the archive for your OS from the assets below, extract it, and run `./tomatui` (Windows: `.\\tomatui.exe`). Rust is not required.\n\n'
             printf '| OS | Archive |\n| --- | --- |\n| macOS (Apple Silicon) | `tomatui-aarch64-apple-darwin.tar.gz` |\n| macOS (Intel) | `tomatui-x86_64-apple-darwin.tar.gz` |\n| Linux (x86-64) | `tomatui-x86_64-unknown-linux-gnu.tar.gz` |\n| Windows (x86-64) | `tomatui-x86_64-pc-windows-msvc.zip` |\n\n'
             printf 'Or build from source with Cargo:\n\n```bash\ncargo install --locked tomatui --version %s\n```\n\n' "$version"
             if [ -s dependency_changes.md ]; then

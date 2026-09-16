@@ -10,9 +10,16 @@ const MINIMUM_VALUE_ERROR: &str = "must be at least 1";
 const VALUE_TOO_LARGE_ERROR: &str = "is too large";
 
 fn parse_minutes(value: &str) -> Result<u64, String> {
-    let minutes = value
+    let (number, multiplier) = if let Some(hours) = value.strip_suffix('h') {
+        (hours, 60)
+    } else {
+        (value.strip_suffix('m').unwrap_or(value), 1)
+    };
+    let minutes = number
         .parse::<u64>()
-        .map_err(|_| POSITIVE_WHOLE_NUMBER_ERROR.to_string())?;
+        .map_err(|_| "use whole minutes or hours, such as 30, 30m, or 1h".to_string())?
+        .checked_mul(multiplier)
+        .ok_or_else(|| VALUE_TOO_LARGE_ERROR.to_string())?;
     if minutes == 0 {
         return Err(MINIMUM_VALUE_ERROR.to_string());
     }
@@ -44,7 +51,8 @@ fn parse_history_days(value: &str) -> Result<u32, String> {
 #[command(
     version,
     about = "Terminal Pomodoro Timer",
-    args_conflicts_with_subcommands = true
+    args_conflicts_with_subcommands = true,
+    after_help = "Examples:\n  tomatui             Start with saved settings\n  tomatui 30m         Work for 30 minutes\n  tomatui 45m 10m     Work for 45 minutes, then rest for 10\n  tomatui -m          Use one line\n  tomatui 1h -m       Work for one hour in one-line mode\n  tomatui config -w 30m -b 10m   Save your usual durations"
 )]
 pub struct Cli {
     #[command(flatten)]
@@ -56,25 +64,40 @@ pub struct Cli {
 
 impl Cli {
     pub fn into_command(self) -> Commands {
-        self.command.unwrap_or(Commands::Start(self.start))
+        match self.command.unwrap_or(Commands::Start(self.start)) {
+            Commands::Start(mut args) => {
+                args.work = args.work.or(args.work_duration.take());
+                args.r#break = args.r#break.or(args.break_duration.take());
+                Commands::Start(args)
+            }
+            command => command,
+        }
     }
 }
 
 #[derive(Args, Debug, Default, PartialEq)]
 pub struct StartArgs {
+    /// Work duration, for example 30m or 1h (plain numbers mean minutes)
+    #[arg(value_name = "WORK", value_parser = parse_minutes, conflicts_with = "work")]
+    pub work_duration: Option<u64>,
+
+    /// Break duration, for example 10m (overrides config for this run)
+    #[arg(value_name = "BREAK", value_parser = parse_minutes, requires = "work_duration", conflicts_with = "break")]
+    pub break_duration: Option<u64>,
+
     /// Minimal one-line mode
     #[arg(short, long)]
     pub minimal: bool,
 
-    /// Work duration in minutes (overrides config)
+    /// Work duration, e.g. 30m or 1h (overrides config)
     #[arg(short, long, value_parser = parse_minutes)]
     pub work: Option<u64>,
 
-    /// Break duration in minutes (overrides config)
+    /// Break duration, e.g. 30m or 1h (overrides config)
     #[arg(short, long, value_parser = parse_minutes)]
     pub r#break: Option<u64>,
 
-    /// Long break duration in minutes (overrides config)
+    /// Long break duration, e.g. 30m or 1h (overrides config)
     #[arg(short, long, value_parser = parse_minutes)]
     pub long_break: Option<u64>,
 
@@ -98,15 +121,15 @@ pub enum Commands {
     },
     /// View or update settings
     Config {
-        /// Set work duration in minutes
+        /// Set work duration, e.g. 30m or 1h
         #[arg(short, long, value_parser = parse_minutes)]
         work: Option<u64>,
 
-        /// Set break duration in minutes
+        /// Set break duration, e.g. 10m
         #[arg(short, long, value_parser = parse_minutes)]
         r#break: Option<u64>,
 
-        /// Set long break duration in minutes
+        /// Set long break duration, e.g. 15m
         #[arg(short, long, value_parser = parse_minutes)]
         long_break: Option<u64>,
 
@@ -143,6 +166,54 @@ pub enum StatsCommands {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn short_durations_apply_to_both_launch_forms() {
+        for prefix in [vec!["tomatui"], vec!["tomatui", "start"]] {
+            let cli = Cli::try_parse_from(prefix.into_iter().chain(["1h", "10m", "-m"])).unwrap();
+            let Commands::Start(args) = cli.into_command() else {
+                panic!("expected timer")
+            };
+            assert_eq!(args.work, Some(60));
+            assert_eq!(args.r#break, Some(10));
+            assert!(args.minimal);
+        }
+        let cli = Cli::try_parse_from(["tomatui", "30"]).unwrap();
+        let Commands::Start(args) = cli.into_command() else {
+            panic!("expected timer")
+        };
+        assert_eq!(args.work, Some(30));
+        assert_eq!(args.r#break, None);
+        assert!(Cli::try_parse_from(["tomatui", "config", "-w", "1h", "-b", "10m"]).is_ok());
+    }
+
+    #[test]
+    fn rejects_ambiguous_or_invalid_short_durations() {
+        for args in [
+            vec!["30m", "-w", "20"],
+            vec!["30m", "10m", "-b", "5"],
+            vec!["30m", "10m", "5m"],
+            vec!["30m", "stats"],
+        ] {
+            assert!(Cli::try_parse_from(["tomatui"].into_iter().chain(args)).is_err());
+        }
+        for value in [
+            "0",
+            "0m",
+            "0h",
+            "-1",
+            "1.5h",
+            "30s",
+            "m",
+            "1h30m",
+            "18446744073709551615h",
+            "18446744073709551615m",
+        ] {
+            assert!(Cli::try_parse_from(["tomatui", value]).is_err(), "{value}");
+        }
+        assert_eq!(parse_minutes("1h").unwrap(), 60);
+        assert_eq!(parse_minutes("30m").unwrap(), 30);
+    }
 
     #[test]
     fn rejects_zero_durations_and_sessions() {
@@ -254,6 +325,7 @@ mod tests {
                     long_break: Some(20),
                     sessions: Some(3),
                     on_end: Some(OnEnd::Ask),
+                    ..StartArgs::default()
                 }
             );
         }
