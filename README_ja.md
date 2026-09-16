@@ -50,7 +50,7 @@ Linuxの配布版にはglibc 2.39以降が必要です。古いglibcやmuslを�
 Rust 1.93以降で、次のコマンドを実行します。
 
 ```bash
-git clone --branch feat/focus-experience https://github.com/Hiro-Chiba/tomatui.git
+git clone https://github.com/Hiro-Chiba/tomatui.git
 cd tomatui
 cargo install --path . --locked
 tomatui

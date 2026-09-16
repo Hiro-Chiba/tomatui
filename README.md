@@ -50,7 +50,7 @@ The Linux binary requires glibc 2.39 or newer. For older glibc or musl-based sys
 With Rust 1.93 or later:
 
 ```bash
-git clone --branch feat/focus-experience https://github.com/Hiro-Chiba/tomatui.git
+git clone https://github.com/Hiro-Chiba/tomatui.git
 cd tomatui
 cargo install --path . --locked
 tomatui
