@@ -14,6 +14,25 @@ const DEFAULT_LONG_BREAK_MINUTES: u64 = 15;
 const DEFAULT_SESSIONS: u32 = 4;
 const SETTINGS_SEPARATOR_WIDTH: usize = 40;
 
+#[derive(Debug, Default, Serialize, Deserialize, Clone, Copy, PartialEq, clap::ValueEnum)]
+#[serde(rename_all = "lowercase")]
+pub enum OnEnd {
+    Ask,
+    #[default]
+    Start,
+    Quit,
+}
+
+impl std::fmt::Display for OnEnd {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Ask => "ask",
+            Self::Start => "start",
+            Self::Quit => "quit",
+        })
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(default)]
 pub struct Config {
@@ -21,6 +40,7 @@ pub struct Config {
     pub break_minutes: u64,
     pub long_break_minutes: u64,
     pub sessions: u32,
+    pub on_end: OnEnd,
 }
 
 impl Default for Config {
@@ -30,6 +50,7 @@ impl Default for Config {
             break_minutes: DEFAULT_BREAK_MINUTES,
             long_break_minutes: DEFAULT_LONG_BREAK_MINUTES,
             sessions: DEFAULT_SESSIONS,
+            on_end: OnEnd::default(),
         }
     }
 }
@@ -72,6 +93,7 @@ impl Config {
             break_secs: self.break_minutes * SECONDS_PER_MINUTE,
             long_break_secs: self.long_break_minutes * SECONDS_PER_MINUTE,
             sessions: self.sessions,
+            on_end: self.on_end,
         })
     }
 }
@@ -120,6 +142,7 @@ pub fn print_config() -> Result<(), Box<dyn Error>> {
     println!("  break          {} min", config.break_minutes);
     println!("  long_break     {} min", config.long_break_minutes);
     println!("  sessions       {}", config.sessions);
+    println!("  on_end         {}", config.on_end);
     println!();
     Ok(())
 }
@@ -160,6 +183,7 @@ mod tests {
         assert_eq!(config.break_minutes, 5);
         assert_eq!(config.long_break_minutes, 15);
         assert_eq!(config.sessions, 4);
+        assert_eq!(config.on_end, OnEnd::Start);
         assert!(config.timer_config().is_ok());
     }
 
@@ -178,6 +202,7 @@ mod tests {
             break_minutes: 10,
             long_break_minutes: 20,
             sessions: 6,
+            on_end: OnEnd::Ask,
         };
 
         save_config_to(&dir.file(), &config).unwrap();
@@ -191,6 +216,7 @@ mod tests {
         assert_eq!(config.break_minutes, 5);
         assert_eq!(config.long_break_minutes, 15);
         assert_eq!(config.sessions, 4);
+        assert_eq!(config.on_end, OnEnd::Start);
     }
 
     #[test]

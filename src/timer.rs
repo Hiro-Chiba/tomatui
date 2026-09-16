@@ -1,5 +1,6 @@
 use std::time::{Duration, Instant};
 
+use crate::config::OnEnd;
 use crate::constants::SECONDS_PER_MINUTE;
 
 const FIRST_SESSION: u32 = 1;
@@ -26,6 +27,7 @@ pub struct TimerConfig {
     pub break_secs: u64,
     pub long_break_secs: u64,
     pub sessions: u32,
+    pub on_end: OnEnd,
 }
 
 pub struct Timer {
@@ -116,6 +118,22 @@ impl Timer {
         self.last_tick = Instant::now();
     }
 
+    pub fn add_minute(&mut self) -> bool {
+        if self.skipped || self.remaining.is_zero() {
+            return false;
+        }
+        let extra = Duration::from_secs(SECONDS_PER_MINUTE);
+        let (Some(remaining), Some(total)) = (
+            self.remaining.checked_add(extra),
+            self.total.checked_add(extra),
+        ) else {
+            return false;
+        };
+        self.remaining = remaining;
+        self.total = total;
+        true
+    }
+
     pub fn skip(&mut self) {
         self.skipped = true;
         self.remaining = Duration::ZERO;
@@ -183,6 +201,7 @@ mod tests {
             break_secs: 300,
             long_break_secs: 900,
             sessions: 4,
+            on_end: OnEnd::Start,
         }
     }
 
@@ -448,5 +467,21 @@ mod tests {
 
         assert_eq!(timer.phase, Phase::LongBreak);
         assert_eq!(timer.remaining, Duration::from_secs(900));
+    }
+    #[test]
+    fn extension_is_atomic_on_overflow_and_preserves_pause() {
+        let mut timer = Timer::new(test_config());
+        timer.toggle_pause();
+        assert!(timer.add_minute());
+        assert!(timer.paused);
+        assert_eq!(timer.remaining.as_secs(), 1560);
+        assert_eq!(timer.total.as_secs(), 1560);
+        timer.total = Duration::MAX;
+        let remaining = timer.remaining;
+        assert!(!timer.add_minute());
+        assert_eq!(timer.remaining, remaining);
+        assert_eq!(timer.total, Duration::MAX);
+        timer.skip();
+        assert!(!timer.add_minute());
     }
 }

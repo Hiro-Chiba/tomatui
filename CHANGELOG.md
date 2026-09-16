@@ -4,6 +4,24 @@ Notable changes to Tomatui are recorded here.
 
 ## [Unreleased]
 
+### Added
+
+- Launch the full timer with `tomatui` or one-line mode with `tomatui -m`. Existing `start` commands remain supported.
+- Choose `ask`, `start`, or `quit` when a phase ends, with `--on-end` when launching or saving configuration. Existing settings keep automatic transitions.
+- Add one minute to the current phase with `+` or the up arrow.
+- Show a summary of completed work when the timer exits.
+
+### Changed
+
+- Simplified the full timer display and added a compact layout for smaller terminals.
+- Use a thick block progress bar while preserving the original red, green, and blue phase colors.
+- Refreshed both READMEs with a full timer demo, a standalone one-line demo, a statistics example, and clearer installation paths.
+
+### Fixed
+
+- Center the visible clock glyphs, labels, and controls consistently.
+- Keep statistics errors visible and report them after restoring the terminal.
+
 ## [0.1.5] - 2026-09-12
 
 ### Changed

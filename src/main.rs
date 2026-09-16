@@ -10,25 +10,27 @@ mod tui;
 mod ui;
 
 use clap::Parser;
-use cli::{Cli, Commands, StatsCommands};
+use cli::{Cli, Commands, StartArgs, StatsCommands};
 use config::{Config, load_config, save_config};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
-    match cli.command {
-        Commands::Start {
+    match cli.into_command() {
+        Commands::Start(StartArgs {
             minimal,
             work,
             r#break,
             long_break,
             sessions,
-        } => {
+            on_end,
+        }) => {
             let mut cfg = load_config()?;
             cfg.work_minutes = work.unwrap_or(cfg.work_minutes);
             cfg.break_minutes = r#break.unwrap_or(cfg.break_minutes);
             cfg.long_break_minutes = long_break.unwrap_or(cfg.long_break_minutes);
             cfg.sessions = sessions.unwrap_or(cfg.sessions);
+            cfg.on_end = on_end.unwrap_or(cfg.on_end);
             let config = cfg.timer_config()?;
 
             if minimal {
@@ -49,6 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             r#break,
             long_break,
             sessions,
+            on_end,
             reset,
         } => {
             if reset {
@@ -58,8 +61,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Ok(());
             }
 
-            let has_updates =
-                work.is_some() || r#break.is_some() || long_break.is_some() || sessions.is_some();
+            let has_updates = work.is_some()
+                || r#break.is_some()
+                || long_break.is_some()
+                || sessions.is_some()
+                || on_end.is_some();
 
             if has_updates {
                 let mut cfg = load_config()?;
@@ -74,6 +80,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 if let Some(v) = sessions {
                     cfg.sessions = v;
+                }
+                if let Some(v) = on_end {
+                    cfg.on_end = v;
                 }
                 save_config(&cfg)?;
                 println!("  Settings updated.");
