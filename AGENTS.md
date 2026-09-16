@@ -15,3 +15,4 @@ Tomatui is a small terminal Pomodoro timer written in Rust. It provides a full T
 - Preserve the CLI and JSON file formats whenever possible.
 - Add dependencies only when the standard library and current crates are insufficient.
 - Run formatting, linting, and tests before completing a change.
+- Keep both READMEs brief and led by demos and command examples. Put detailed explanations in the user guides under `docs/`.
