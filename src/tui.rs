@@ -1,7 +1,6 @@
-use crossterm::event::{self, Event, KeyEventKind};
+use crossterm::event::{self, Event};
 
 use crate::app::App;
-use crate::constants::TICK_RATE;
 use crate::timer::TimerConfig;
 use crate::ui;
 
@@ -23,21 +22,26 @@ pub fn run(config: TimerConfig) -> Result<(), Box<dyn std::error::Error>> {
                 redraw = false;
             }
 
-            if event::poll(TICK_RATE)? {
-                redraw = true;
-                if let Event::Key(key) = event::read()?
-                    && key.kind == KeyEventKind::Press
-                {
-                    app.on_key_event(key);
-                }
-            }
+            let input = if event::poll(app.poll_timeout())? {
+                Some(event::read()?)
+            } else {
+                None
+            };
 
+            // Account for elapsed time before pause or phase-switch input resets the clock.
+            redraw |= app.tick();
             if app.should_quit {
                 break;
             }
-
-            if app.tick() {
-                redraw = true;
+            match input {
+                Some(Event::Key(key)) => redraw |= app.on_key_event(key),
+                Some(Event::Resize(_, _)) => redraw = true,
+                _ => {}
+            }
+            // Apply skips immediately, including while paused.
+            redraw |= app.tick();
+            if app.should_quit {
+                break;
             }
         }
 

@@ -56,6 +56,27 @@ impl Timer {
         }
     }
 
+    /// Wait only until the next visible second changes. Input wakes the poll early.
+    pub fn next_update_in(&self) -> Duration {
+        self.next_update_at(Instant::now())
+    }
+
+    fn next_update_at(&self, now: Instant) -> Duration {
+        if self.skipped || self.remaining.is_zero() {
+            return Duration::ZERO;
+        }
+        if self.paused {
+            return Duration::from_secs(30);
+        }
+        let nanos = self.remaining.subsec_nanos();
+        let boundary = if nanos == 0 {
+            Duration::from_secs(1)
+        } else {
+            Duration::from_nanos(u64::from(nanos))
+        };
+        boundary.saturating_sub(now.saturating_duration_since(self.last_tick))
+    }
+
     pub fn tick(&mut self) -> bool {
         self.tick_at(Instant::now())
     }
@@ -203,6 +224,30 @@ mod tests {
             sessions: 4,
             on_end: OnEnd::Start,
         }
+    }
+
+    #[test]
+    fn polling_follows_display_deadlines_without_accumulating_draw_time() {
+        let mut timer = Timer::new(test_config());
+        let start = timer.last_tick;
+        assert_eq!(timer.next_update_at(start), Duration::from_secs(1));
+        assert_eq!(
+            timer.next_update_at(start + Duration::from_millis(250)),
+            Duration::from_millis(750)
+        );
+        timer.tick_at(start + Duration::from_millis(350));
+        assert_eq!(
+            timer.next_update_at(start + Duration::from_millis(500)),
+            Duration::from_millis(500)
+        );
+        assert_eq!(
+            timer.next_update_at(start + Duration::from_secs(2)),
+            Duration::ZERO
+        );
+        timer.paused = true;
+        assert_eq!(timer.next_update_at(start), Duration::from_secs(30));
+        timer.skip();
+        assert_eq!(timer.next_update_at(start), Duration::ZERO);
     }
 
     #[test]

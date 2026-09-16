@@ -17,6 +17,8 @@ This setup gives the workflow a short-lived publishing token and avoids storing 
 
 ## Release process
 
+README and documentation edits alone do not warrant a release. Merge those changes to main and include them in the next release with runtime fixes or improvements. Run the checks in [Testing](testing.md), including terminal E2E, before tagging. Both CI and the release workflow run the terminal suite on Linux and macOS.
+
 Update the version in `Cargo.toml` and `Cargo.lock`, then add the release notes and date to `CHANGELOG.md`. Commit the changes to `main` and wait for CI to pass.
 
 Add the `dependencies` label to dependency-only pull requests created by maintainers. Dependabot pull requests are excluded automatically. Their version changes are listed by `whats-changed`, so the generated pull request list does not repeat them.

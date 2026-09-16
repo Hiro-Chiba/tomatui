@@ -8,6 +8,7 @@ Tomatui is a small terminal Pomodoro timer written in Rust. It provides a full T
 
 - [Architecture](docs/architecture.md)
 - [Releasing](docs/releasing.md)
+- [Testing](docs/testing.md)
 
 ## Rules
 

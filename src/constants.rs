@@ -1,9 +1,6 @@
-use std::time::Duration;
-
 pub const APP_NAME: &str = "tomatui";
 pub const APP_DISPLAY_NAME: &str = "Tomatui";
 pub const DATE_FORMAT: &str = "%Y-%m-%d";
-pub const TICK_RATE: Duration = Duration::from_millis(100);
 pub const SECONDS_PER_MINUTE: u64 = 60;
 pub const MINUTES_PER_HOUR: u64 = 60;
 pub const FULL_BLOCK: &str = "\u{2588}";

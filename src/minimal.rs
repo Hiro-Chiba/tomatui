@@ -1,10 +1,10 @@
-use crossterm::event::{self, Event, KeyEventKind};
+use crossterm::event::{self, Event};
 use crossterm::terminal::{self, ClearType};
 use crossterm::{cursor, execute};
 use std::io::{self, Write};
 
 use crate::app::App;
-use crate::constants::{FULL_BLOCK, MINI_BAR_WIDTH, TICK_RATE};
+use crate::constants::{FULL_BLOCK, MINI_BAR_WIDTH};
 use crate::timer::{Phase, TimerConfig};
 
 const ANSI_RED: &str = "\x1b[31m";
@@ -63,7 +63,8 @@ fn line_for_width(app: &App, width: u16) -> String {
     line.chars()
         .filter(|character| !character.is_control())
         .take_while(|character| {
-            used += ratatui::text::Span::raw(character.to_string()).width();
+            let mut encoded = [0; 4];
+            used += ratatui::text::Span::raw(&*character.encode_utf8(&mut encoded)).width();
             used <= limit
         })
         .collect()
@@ -121,21 +122,26 @@ pub fn run(config: TimerConfig) -> Result<(), Box<dyn std::error::Error>> {
                 redraw = false;
             }
 
-            if event::poll(TICK_RATE)? {
-                redraw = true;
-                if let Event::Key(key) = event::read()?
-                    && key.kind == KeyEventKind::Press
-                {
-                    app.on_key_event(key);
-                }
-            }
+            let input = if event::poll(app.poll_timeout())? {
+                Some(event::read()?)
+            } else {
+                None
+            };
 
+            // Account for elapsed time before pause or phase-switch input resets the clock.
+            redraw |= app.tick();
             if app.should_quit {
                 break;
             }
-
-            if app.tick() {
-                redraw = true;
+            match input {
+                Some(Event::Key(key)) => redraw |= app.on_key_event(key),
+                Some(Event::Resize(_, _)) => redraw = true,
+                _ => {}
+            }
+            // Apply skips immediately, including while paused.
+            redraw |= app.tick();
+            if app.should_quit {
+                break;
             }
         }
 
