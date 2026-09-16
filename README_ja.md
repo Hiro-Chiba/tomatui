@@ -7,23 +7,21 @@
 
 **エディタの隣に、小さな集中タイマー。**
 
-作業も休憩も、終わった仕事の振り返りもターミナルで。広い画面では大きな時計、小さなペインでは1行表示を使えます。集中の記録は自分のPCに保存されます。
-
 [ダウンロード](https://github.com/Hiro-Chiba/tomatui/releases/latest) · [English](README.md) · [変更履歴](CHANGELOG.md)
 
-![赤の作業、緑の休憩、青の長い休憩を表示する Tomatui](assets/demo.gif)
+![赤の作業、緑の休憩、青の長い休憩を表示する Tomatui](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/demo.gif)
 
-待ち時間を省略した約8秒のデモです。作業は赤、休憩は緑、長い休憩は青で表示し、太いバーが時間経過に合わせて進みます。撮影用に作業・休憩1分と`on_end=ask`を保存しています。初期設定は作業25分・休憩5分のままです。[MP4で見る](assets/demo.mp4)。
+待ち時間を省略した約8秒のデモです。作業は赤、休憩は緑、長い休憩は青で表示し、太いバーが時間経過に合わせて進みます。撮影用に作業・休憩1分と`on_end=ask`を保存しています。初期設定は作業25分・休憩5分のままです。[MP4で見る](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/demo.mp4)。
 
-> このREADMEは開発版のプレビューです。短い起動コマンド、新しい画面、キー操作はソースから利用できます。公開済みのv0.1.5では`tomatui start`または`tomatui start -m`を使います。[変更履歴](CHANGELOG.md)もご確認ください。
+作業も休憩も、終わった仕事の振り返りもターミナルで。広い画面では大きな時計、小さなペインでは1行表示を使えます。集中の記録は自分のPCに保存されます。
 
 ## 使い始める
 
-Rust 1.93以降をお使いなら、公開済みのバージョンをインストールして起動できます。
+Rust 1.93以降をお使いなら、インストールしてすぐに起動できます。
 
 ```bash
 cargo install --locked tomatui
-tomatui start
+tomatui
 ```
 
 Rustを使わない場合は、[OSに合うバイナリをダウンロード](https://github.com/Hiro-Chiba/tomatui/releases/latest)してください。
@@ -38,14 +36,14 @@ Rustを使わない場合は、[OSに合うバイナリをダウンロード](ht
 | Linux、x86-64 | [tomatui-x86_64-unknown-linux-gnu.tar.gz](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-unknown-linux-gnu.tar.gz) |
 | Windows、x86-64 | [tomatui-x86_64-pc-windows-msvc.zip](https://github.com/Hiro-Chiba/tomatui/releases/latest/download/tomatui-x86_64-pc-windows-msvc.zip) |
 
-ファイルを展開し、そのフォルダでターミナルを開きます。macOS・Linuxでは`./tomatui start`、WindowsではPowerShellで`.\tomatui.exe start`を実行してください。`q`で終了できます。実行ファイルを`PATH`の通ったディレクトリに置くと、どのフォルダからでも`tomatui`で起動できます。
+ファイルを展開し、そのフォルダでターミナルを開きます。macOS・Linuxでは`./tomatui`、WindowsではPowerShellで`.\tomatui.exe`を実行してください。`q`で終了できます。実行ファイルを`PATH`の通ったディレクトリに置くと、どのフォルダからでも`tomatui`で起動できます。
 
 Linuxの配布版にはglibc 2.39以降が必要です。古いglibcやmuslを使う環境では、Cargoでお使いの環境向けにビルドしてください。配布済みバイナリの実行にRustやCargoは不要です。
 
 </details>
 
 <details>
-<summary>このREADMEの開発版を試す</summary>
+<summary>ソースからビルドする</summary>
 
 Rust 1.93以降で、次のコマンドを実行します。
 
@@ -65,13 +63,16 @@ tomatui
 ターミナル単体でも、エディタの隣の小さなペインでも使えます。1行表示でも、大きな時計と同じタイマー、キー操作、統計保存を利用できます。
 
 ```bash
-tomatui       # 大きな時計
-tomatui -m    # 1行表示
+tomatui          # 保存した設定で起動
+tomatui 30m      # 30分作業
+tomatui 45m 10m  # 45分作業・10分休憩
+tomatui -m       # 1行表示
+tomatui 1h -m    # 1行表示で1時間作業
 ```
 
-![一時停止・再開・1分延長を行う Tomatui の1行表示](assets/minimal.gif)
+![一時停止・再開・1分延長を行う Tomatui の1行表示](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/minimal.gif)
 
-上と同じ撮影用設定で、待ち時間を省略した約4秒のデモです。[MP4で見る](assets/minimal.mp4)。
+上と同じ撮影用設定で、待ち時間を省略した約4秒のデモです。[MP4で見る](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/minimal.mp4)。
 
 ## 次の休憩は、自分のタイミングで
 
@@ -84,7 +85,9 @@ tomatui config --on-end ask       # 一度だけ保存：区切りごとに待�
 tomatui                          # 保存済みの設定で起動
 ```
 
-普段の時間を変えるなら`tomatui config -w 30 -b 10`を使います。その回だけ変える場合は、`tomatui --on-end quit`や`tomatui -w 30`で保存済み設定を上書きできます。
+普段の時間を変えるなら`tomatui config -w 30 -b 10`を使います。その回だけ変える場合は、`tomatui --on-end quit`や`tomatui 30m`で保存済み設定を上書きできます。
+
+時間は整数の分（`30`・`30m`）か時間（`1h`）で指定できます。省略した時間には保存済み設定を使い、起動コマンドで設定を書き換えることはありません。`tomatui --help`でも使用例を確認できます。
 
 初期設定は作業25分、休憩5分、4セッションごとに長い休憩15分です。終了すると、その起動中に完了した作業のサマリーを表示します。
 
@@ -110,7 +113,7 @@ tomatui stats history --days 30  # 直近30日
 tomatui stats summary           # 全期間のサマリー
 ```
 
-![サンプルの1週間について、完了した作業セッションと集中時間を表示する Tomatui の統計](assets/stats.png)
+![サンプルの1週間について、完了した作業セッションと集中時間を表示する Tomatui の統計](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/stats.png)
 
 画像はサンプルデータです。完了した作業の時間には`+`で追加した分も含めます。スキップした作業や途中で終了した作業は記録しません。スキップしても作業・休憩の周期上の位置は進むため、セッション表示は完了数ではなく、その周期の何回目かを表します。
 
@@ -136,7 +139,7 @@ macOS・Linuxのデスクトップ通知は、環境が対応している場合�
 <details>
 <summary>開発</summary>
 
-タイマーや保存の仕組みは[設計](docs/architecture.md)、公開手順は[リリース](docs/releasing.md)を参照してください。CIでは`Cargo.toml`に記載した最低対応Rustバージョンも確認します。GIFとサンプル統計画像の再生成手順は[デモの撮影方法](assets/README.md)にあります。
+タイマーや保存の仕組みは[設計](docs/architecture.md)、公開手順は[リリース](docs/releasing.md)を参照してください。CIでは`Cargo.toml`に記載した最低対応Rustバージョンも確認します。GIFとサンプル統計画像の再生成手順は[デモの撮影方法](https://raw.githubusercontent.com/Hiro-Chiba/tomatui/main/assets/README.md)にあります。
 
 ```bash
 cargo fmt --check
