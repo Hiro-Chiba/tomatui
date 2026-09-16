@@ -19,3 +19,7 @@ Configuration is stored as JSON in the OS config directory. Statistics are store
 ## Display colors
 
 Keep the original phase palette. Work uses `#EB5757`, Break uses `#6FCF97`, and Long Break uses `#569CD6`. Demo recordings use the original Catppuccin Mocha terminal theme.
+
+## Event loop
+
+Both displays wait with `crossterm::event::poll` until the next visible second boundary. The timeout subtracts time spent drawing so rendering cannot accumulate clock drift. Paused timers and completion prompts use a 30-second idle timeout. Keyboard and resize events wake the poll immediately. The loop applies elapsed time before input, processes skips immediately, and exits without an extra wait after natural completion in quit mode. Ignored keys do not trigger redraws.

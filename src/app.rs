@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use crate::config::OnEnd;
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
@@ -44,6 +44,14 @@ impl App {
             unsaved_sessions: 0,
             cached_stats,
             stats_updated_at: Instant::now(),
+        }
+    }
+
+    pub fn poll_timeout(&self) -> Duration {
+        if self.waiting_for_next {
+            Duration::from_secs(30)
+        } else {
+            self.timer.next_update_in()
         }
     }
 
@@ -102,7 +110,26 @@ impl App {
         true
     }
 
-    pub fn on_key_event(&mut self, key: KeyEvent) {
+    /// Returns whether input changed the visible timer state.
+    pub fn on_key_event(&mut self, key: KeyEvent) -> bool {
+        let before = self.input_state();
+        self.handle_key_event(key);
+        self.input_state() != before
+    }
+
+    fn input_state(&self) -> (Phase, Duration, Duration, bool, bool, bool, bool) {
+        (
+            self.timer.phase,
+            self.timer.remaining,
+            self.timer.total,
+            self.timer.paused,
+            self.timer.skipped,
+            self.waiting_for_next,
+            self.should_quit,
+        )
+    }
+
+    fn handle_key_event(&mut self, key: KeyEvent) {
         if key.kind != KeyEventKind::Press {
             return;
         }
@@ -187,6 +214,20 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ignored_input_and_waiting_do_not_trigger_redraws_or_busy_polling() {
+        let mut app = App::with_cached_stats(test_config(), (0, 0));
+        assert!(!app.on_key_event(KeyEvent::new(KeyCode::Char('x'), KeyModifiers::NONE)));
+        assert!(app.on_key_event(KeyEvent::new(KeyCode::Char('p'), KeyModifiers::NONE)));
+        assert_eq!(app.poll_timeout(), Duration::from_secs(30));
+        app.waiting_for_next = true;
+        app.timer.remaining = Duration::ZERO;
+        assert_eq!(app.poll_timeout(), Duration::from_secs(30));
+        assert!(!app.on_key_event(KeyEvent::new(KeyCode::Char('+'), KeyModifiers::NONE)));
+        assert!(app.on_key_event(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE)));
+        assert!(!app.waiting_for_next);
+    }
 
     fn test_config() -> TimerConfig {
         TimerConfig {

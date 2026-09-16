@@ -65,6 +65,10 @@ tomatui stats history  # 直近1週間
 
 *画像はサンプルです。完了した作業をPC内に保存し、スキップした作業は数えません。*
 
+## Contributing
+
+機能追加のアイデア、挙動の改善、不具合の報告・修正を歓迎しています。[Issue](https://github.com/Hiro-Chiba/tomatui/issues)や[Pull Request](https://github.com/Hiro-Chiba/tomatui/pulls)でお気軽にご提案ください。開発時は[テスト手順](docs/testing.md)をご覧ください。
+
 <details>
 <summary>詳しく見る</summary>
 

@@ -4,6 +4,22 @@ Notable changes to Tomatui are recorded here.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-16
+
+### Changed
+
+- Wait until the next visible timer change instead of polling every 100 milliseconds. Keyboard input still wakes the event loop immediately.
+- Avoid redraws for ignored keys and per-character string allocations in minimal mode.
+- Keep the READMEs short and move detailed instructions to linked user guides.
+
+### Fixed
+
+- Account for elapsed time before handling pause and phase-switch input, and exit promptly when a phase finishes in `quit` mode.
+
+### Added
+
+- CLI process tests on all supported CI platforms and real-terminal E2E tests on Linux and macOS, including completion, persistence, resize, and terminal restoration.
+
 ## [0.2.0] - 2026-09-16
 
 ### Added
@@ -83,7 +99,7 @@ Notable changes to Tomatui are recorded here.
 
 - Initial crates.io release.
 
-[Unreleased]: https://github.com/Hiro-Chiba/tomatui/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Hiro-Chiba/tomatui/compare/v0.2.1...HEAD
 [0.1.5]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.4
 [0.1.3]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.3
@@ -91,3 +107,5 @@ Notable changes to Tomatui are recorded here.
 [0.1.1]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.1
 
 [0.2.0]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.2.0
+
+[0.2.1]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.2.1

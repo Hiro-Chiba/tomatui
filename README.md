@@ -65,6 +65,10 @@ tomatui stats history  # Past week
 
 *Sample data. Completed work is saved locally; skipped work is not counted.*
 
+## Contributing
+
+Feature ideas, behavior improvements, and bug fixes are welcome! Open an [issue](https://github.com/Hiro-Chiba/tomatui/issues) or send a [pull request](https://github.com/Hiro-Chiba/tomatui/pulls). See [testing](docs/testing.md) to get started.
+
 <details>
 <summary>More</summary>
 
