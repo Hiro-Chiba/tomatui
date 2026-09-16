@@ -134,7 +134,11 @@ pub fn print_summary() -> Result<(), Box<dyn Error>> {
 pub fn print_history(days: u32) -> Result<(), Box<dyn Error>> {
     let stats = load_stats()?;
     let today = Local::now().date_naive();
+    print_history_for(&stats, today, days)
+}
 
+/// Render a history for an explicit date and dataset, including preview fixtures.
+pub fn print_history_for(stats: &Stats, today: NaiveDate, days: u32) -> Result<(), Box<dyn Error>> {
     println!("\n  Pomodoro History (last {} days)", days);
     println!("  {}", "-".repeat(HISTORY_SEPARATOR_WIDTH));
 

@@ -1,5 +1,4 @@
-# Standalone one-line timer, shown at normal speed.
-Output target/recordings/minimal.mp4
+Output "/tmp/tomatui-long-break-preview.gif"
 Set Shell "bash"
 Set FontSize 32
 Set FontFamily "FiraCode Nerd Font Mono"
@@ -12,25 +11,18 @@ Set WindowBar Colorful
 Set Framerate 30
 Set CursorBlink false
 Set Theme "Catppuccin Mocha"
-Set Height 384
-Set TypingSpeed 45ms
+Set Height 1000
 Env NO_COLOR ""
 Env COLORTERM "truecolor"
 Hide
-Type@1ms "alias tomatui=./target/debug/tomatui; PS1='$ '; clear"
+Type "./target/debug/tomatui start -w 25 -b 5 -l 15 -s 1 --on-end ask"
 Enter
+Sleep 500ms
+Type "b"
 Sleep 500ms
 Show
-Sleep 500ms
-Type "tomatui -m"
 Sleep 1s
-Enter
-Sleep 8s
-Type "p"
-Sleep 2s
-Type "p"
-Sleep 3s
-Type "+"
-Sleep 2s
+Screenshot assets/long_break.png
+Sleep 1s
+Hide
 Type "q"
-Sleep 2s

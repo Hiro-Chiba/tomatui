@@ -1,4 +1,4 @@
-use crossterm::event::{self, Event, KeyCode, KeyEventKind};
+use crossterm::event::{self, Event, KeyEventKind};
 
 use crate::app::App;
 use crate::constants::TICK_RATE;
@@ -28,11 +28,7 @@ pub fn run(config: TimerConfig) -> Result<(), Box<dyn std::error::Error>> {
                 if let Event::Key(key) = event::read()?
                     && key.kind == KeyEventKind::Press
                 {
-                    match key.code {
-                        KeyCode::Char(c) => app.on_key(c),
-                        KeyCode::Esc => app.should_quit = true,
-                        _ => {}
-                    }
+                    app.on_key_event(key);
                 }
             }
 
@@ -48,6 +44,12 @@ pub fn run(config: TimerConfig) -> Result<(), Box<dyn std::error::Error>> {
         Ok(())
     })();
 
-    ratatui::restore();
-    result
+    let restore_result = ratatui::try_restore();
+    result?;
+    restore_result?;
+    println!("{}", app.summary_text());
+    if let Some(message) = &app.status_message {
+        eprintln!("{message}");
+    }
+    Ok(())
 }

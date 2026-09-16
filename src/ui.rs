@@ -1,268 +1,298 @@
 use ratatui::Frame;
+use ratatui::buffer::Buffer;
 use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
-use ratatui::style::{Color, Modifier, Style};
-use ratatui::symbols::border;
+use ratatui::style::{Color, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, Gauge, Padding, Paragraph};
+use ratatui::widgets::{Paragraph, Widget};
 use tui_big_text::{BigText, PixelSize};
 
 use crate::app::App;
-use crate::constants::{
-    BOX_HEIGHT, BOX_WIDTH, BREAK_KEY, FONT_GLYPH_WIDTH, FONT_VISUAL_OFFSET, MINUTES_PER_HOUR,
-    PAUSE_KEY, PAUSED_LABEL, QUIT_KEY, SKIP_KEY, WORK_KEY,
-};
+use crate::constants::{BOX_HEIGHT, BOX_WIDTH, FONT_GLYPH_WIDTH, FULL_BLOCK, MINUTES_PER_HOUR};
 use crate::timer::Phase;
-
-const WORK_COLOR: Color = Color::Rgb(235, 87, 87);
-const BREAK_COLOR: Color = Color::Rgb(111, 207, 151);
-const LONG_BREAK_COLOR: Color = Color::Rgb(86, 156, 214);
-const DARK_WORK_COLOR: Color = Color::Rgb(100, 30, 30);
-const DARK_BREAK_COLOR: Color = Color::Rgb(30, 80, 50);
-const DARK_LONG_BREAK_COLOR: Color = Color::Rgb(30, 50, 80);
-const BOX_PADDING: Padding = Padding::new(1, 1, 0, 0);
-const ROW_HEIGHT: u16 = 1;
-const BIG_TIME_HEIGHT: u16 = 4;
-const SESSION_DOT_WIDTH: u16 = 2;
-const PERCENT_SCALE: f64 = 100.0;
-const HORIZONTAL_LINE: &str = "\u{2500}";
-const COMPLETED_SESSION_DOT: &str = "\u{25cf} ";
-const CURRENT_SESSION_DOT: &str = "\u{25ce} ";
-const FUTURE_SESSION_DOT: &str = "\u{25cb} ";
 
 fn phase_color(phase: Phase) -> Color {
     match phase {
-        Phase::Work => WORK_COLOR,
-        Phase::Break => BREAK_COLOR,
-        Phase::LongBreak => LONG_BREAK_COLOR,
+        Phase::Work => Color::Rgb(235, 87, 87),
+        Phase::Break => Color::Rgb(111, 207, 151),
+        Phase::LongBreak => Color::Rgb(86, 156, 214),
     }
 }
 
-fn dim_color(phase: Phase) -> Color {
-    match phase {
-        Phase::Work => DARK_WORK_COLOR,
-        Phase::Break => DARK_BREAK_COLOR,
-        Phase::LongBreak => DARK_LONG_BREAK_COLOR,
-    }
+fn centered(area: Rect, width: u16, height: u16) -> Rect {
+    let [row] = Layout::vertical([Constraint::Length(height.min(area.height))])
+        .flex(Flex::Center)
+        .areas(area);
+    Layout::horizontal([Constraint::Length(width.min(area.width))])
+        .flex(Flex::Center)
+        .areas::<1>(row)[0]
 }
 
-fn center_area(area: Rect, width: u16, height: u16) -> Rect {
-    let vertical = Layout::vertical([Constraint::Length(height)])
-        .flex(Flex::Center)
-        .split(area);
-    let horizontal = Layout::horizontal([Constraint::Length(width)])
-        .flex(Flex::Center)
-        .split(vertical[0]);
-    horizontal[0]
+fn text(frame: &mut Frame, area: Rect, content: impl Into<Line<'static>>, color: Color) {
+    let content = content.into();
+    let area = centered(area, content.width().min(area.width as usize) as u16, 1);
+    frame.render_widget(
+        Paragraph::new(content)
+            .alignment(Alignment::Left)
+            .style(Style::default().fg(color)),
+        area,
+    );
 }
 
 pub fn draw(frame: &mut Frame, app: &mut App) {
+    let area = centered(frame.area(), BOX_WIDTH, BOX_HEIGHT);
     let color = phase_color(app.timer.phase);
-    let bg_dim = dim_color(app.timer.phase);
-
-    let outer = center_area(frame.area(), BOX_WIDTH, BOX_HEIGHT);
-
-    // Outer block with rounded borders
-    let outer_block = Block::default()
-        .borders(Borders::ALL)
-        .border_set(border::ROUNDED)
-        .border_style(Style::default().fg(color))
-        .padding(BOX_PADDING);
-    let inner = outer_block.inner(outer);
-    frame.render_widget(outer_block, outer);
-
-    let [
-        title_area,
-        sep1,
-        phase_area,
-        time_area,
-        sep2,
-        gauge_area,
-        sep3,
-        session_dots_area,
-        sep4,
-        stats_area,
-        sep5,
-        help_area,
-    ] = Layout::vertical([
-        Constraint::Length(ROW_HEIGHT),      // title
-        Constraint::Length(ROW_HEIGHT),      // separator
-        Constraint::Length(ROW_HEIGHT),      // phase
-        Constraint::Length(BIG_TIME_HEIGHT), // big time
-        Constraint::Length(ROW_HEIGHT),      // separator
-        Constraint::Length(ROW_HEIGHT),      // gauge
-        Constraint::Length(ROW_HEIGHT),      // separator
-        Constraint::Length(ROW_HEIGHT),      // session dots
-        Constraint::Length(ROW_HEIGHT),      // separator
-        Constraint::Length(ROW_HEIGHT),      // stats
-        Constraint::Length(ROW_HEIGHT),      // separator
-        Constraint::Length(ROW_HEIGHT),      // help
-    ])
-    .areas(inner);
-
-    // Title
-    let title = Paragraph::new(Line::from(Span::styled(
-        " POMODORO ",
-        Style::default()
-            .fg(Color::White)
-            .add_modifier(Modifier::BOLD),
-    )))
-    .alignment(Alignment::Center);
-    frame.render_widget(title, title_area);
-
-    // Separator helper
-    let sep_line = HORIZONTAL_LINE.repeat(inner.width as usize);
-    let sep_style = Style::default().fg(bg_dim);
-    let render_sep = |frame: &mut Frame, area: Rect, line: &str, style: Style| {
-        frame.render_widget(
-            Paragraph::new(Line::from(Span::styled(line.to_string(), style))),
-            area,
-        );
-    };
-    render_sep(frame, sep1, &sep_line, sep_style);
-
-    // Phase
-    let pause_indicator = if app.timer.paused {
-        Span::styled(
-            PAUSED_LABEL,
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::SLOW_BLINK),
-        )
+    let time = app.timer.remaining_display();
+    let state = if app.waiting_for_next {
+        "complete"
+    } else if app.timer.paused {
+        "paused"
     } else {
-        Span::raw("")
+        ""
     };
-    let phase = Paragraph::new(Line::from(vec![
-        Span::styled(
-            app.timer.phase.label().to_uppercase(),
-            Style::default().fg(color).add_modifier(Modifier::BOLD),
-        ),
-        pause_indicator,
-    ]))
-    .alignment(Alignment::Center);
-    frame.render_widget(phase, phase_area);
+    let phase = format!("{}  {}", app.timer.phase.label(), state)
+        .trim_end()
+        .to_owned();
+    let big_width = time.len() as u16 * FONT_GLYPH_WIDTH;
 
-    // Big time display using tui-big-text
-    // HalfHeight: each char = 8 cols wide, "00:00" = 5 chars = 40 cols
-    let time_str = app.timer.remaining_display();
-    let big_width = (time_str.len() as u16) * FONT_GLYPH_WIDTH;
-    // font8x8 glyphs are left-aligned within cells (~3px empty on right)
-    // offset compensates for the visual weight shift
-    let time_x = time_area.x + (time_area.width.saturating_sub(big_width)) / 2 + FONT_VISUAL_OFFSET;
-    let time_centered = Rect::new(time_x, time_area.y, big_width, time_area.height);
-    let big_text = BigText::builder()
+    // Preserve the countdown and controls when a terminal pane is too small for the large clock.
+    if area.width < big_width || area.height < BOX_HEIGHT {
+        let rows: [Rect; 4] = std::array::from_fn(|index| {
+            let offset = (index as u16).min(area.height);
+            Rect::new(
+                area.x,
+                area.y + offset,
+                area.width,
+                u16::from(offset < area.height),
+            )
+        });
+        frame.render_widget(
+            Paragraph::new(format!("{time}  {phase}")).style(Style::default().fg(color)),
+            rows[0],
+        );
+        text(
+            frame,
+            rows[1],
+            format!(
+                "Session {} / {}",
+                app.timer.current_session, app.timer.config.sessions
+            ),
+            Color::Gray,
+        );
+        text(
+            frame,
+            rows[2],
+            if app.waiting_for_next {
+                "Enter next  s next  q quit"
+            } else {
+                "p pause  + 1m  s skip  q quit"
+            },
+            Color::Gray,
+        );
+        if let Some(message) = &app.status_message {
+            text(frame, rows[3], message.clone(), Color::Yellow);
+        }
+        return;
+    }
+
+    let rows = Layout::vertical([
+        Constraint::Length(1), // phase
+        Constraint::Length(1),
+        Constraint::Length(4), // clock
+        Constraint::Length(1),
+        Constraint::Length(1), // progress
+        Constraint::Length(1),
+        Constraint::Length(1), // sessions
+        Constraint::Length(1), // today
+        Constraint::Length(1),
+        Constraint::Length(1), // controls
+        Constraint::Length(1), // extra controls
+        Constraint::Length(1), // error
+    ])
+    .split(area);
+
+    text(frame, rows[0], phase, color);
+    // Bitmap glyphs include blank columns. Center the visible clock, not its padding.
+    let clock_area = Rect::new(0, 0, big_width, 4);
+    let mut clock = Buffer::empty(clock_area);
+    BigText::builder()
         .pixel_size(PixelSize::HalfHeight)
         .style(Style::new().fg(color).bold())
-        .lines(vec![time_str.into()])
-        .build();
-    frame.render_widget(big_text, time_centered);
-
-    render_sep(frame, sep2, &sep_line, sep_style);
-
-    // Progress gauge
-    let progress = app.timer.progress();
-    let gauge = Gauge::default()
-        .gauge_style(Style::default().fg(color).bg(bg_dim))
-        .ratio(progress.clamp(0.0, 1.0))
-        .label(format!("{:.0}%", progress * PERCENT_SCALE));
-    frame.render_widget(gauge, gauge_area);
-
-    render_sep(frame, sep3, &sep_line, sep_style);
-
-    // Session dots
-    let total = app.timer.config.sessions;
-    let current = app.timer.current_session;
-    let session_widget = if total <= u32::from(session_dots_area.width / SESSION_DOT_WIDTH) {
-        let dots: Vec<Span> = (1..=total)
-            .map(|i| {
-                if i < current || (i == current && app.timer.phase != Phase::Work) {
-                    Span::styled(COMPLETED_SESSION_DOT, Style::default().fg(color))
-                } else if i == current {
-                    Span::styled(
-                        CURRENT_SESSION_DOT,
-                        Style::default()
-                            .fg(Color::White)
-                            .add_modifier(Modifier::BOLD),
-                    )
-                } else {
-                    Span::styled(FUTURE_SESSION_DOT, Style::default().fg(Color::DarkGray))
-                }
-            })
-            .collect();
-        Paragraph::new(Line::from(dots))
-    } else {
-        Paragraph::new(format!("Session {current} / {total}"))
-            .style(Style::default().fg(Color::White))
+        .lines(vec![time.into()])
+        .build()
+        .render(clock_area, &mut clock);
+    let occupied = |x| (0..4).any(|y| clock[(x, y)].symbol() != " ");
+    if let (Some(left), Some(right)) = (
+        (0..big_width).find(|&x| occupied(x)),
+        (0..big_width).rfind(|&x| occupied(x)),
+    ) {
+        let target = centered(rows[2], right - left + 1, 4);
+        for y in 0..target.height {
+            for x in 0..target.width {
+                frame.buffer_mut()[(target.x + x, target.y + y)] = clock[(left + x, y)].clone();
+            }
+        }
     }
-    .alignment(Alignment::Center);
-    frame.render_widget(session_widget, session_dots_area);
-
-    render_sep(frame, sep4, &sep_line, sep_style);
-
-    // Today's stats
+    let bar_width = 36;
+    let filled = (app.timer.progress().clamp(0.0, 1.0) * bar_width as f64) as usize;
+    text(
+        frame,
+        rows[4],
+        format!(
+            "{}{}",
+            FULL_BLOCK.repeat(filled),
+            "░".repeat(bar_width - filled)
+        ),
+        color,
+    );
+    text(
+        frame,
+        rows[6],
+        format!(
+            "Session {} / {}",
+            app.timer.current_session, app.timer.config.sessions
+        ),
+        Color::Gray,
+    );
     let (pomos, minutes) = app.today_stats();
-    let hours = minutes / MINUTES_PER_HOUR;
-    let mins = minutes % MINUTES_PER_HOUR;
-    let stats_widget = Paragraph::new(Line::from(vec![
-        Span::styled(
-            format!("{} pomodoros", pomos),
-            Style::default().fg(Color::White),
+    text(
+        frame,
+        rows[7],
+        format!(
+            "Today  {pomos} pomodoros  ·  {}h {}m",
+            minutes / MINUTES_PER_HOUR,
+            minutes % MINUTES_PER_HOUR
         ),
-        Span::styled(" | ", Style::default().fg(Color::DarkGray)),
-        Span::styled(
-            format!("{}h {}m today", hours, mins),
-            Style::default().fg(Color::White),
-        ),
-    ]))
-    .alignment(Alignment::Center);
-    frame.render_widget(stats_widget, stats_area);
+        Color::Rgb(126, 139, 157),
+    );
+    let help = if app.waiting_for_next {
+        vec![("enter", " next   "), ("s", " next   "), ("q", " quit")]
+    } else {
+        vec![
+            ("p/space", " pause   "),
+            ("+", " add 1m   "),
+            ("s", " skip"),
+        ]
+    };
+    let spans = help
+        .into_iter()
+        .flat_map(|(key, label)| {
+            [
+                Span::styled(key, Style::default().fg(color)),
+                Span::styled(label, Style::default().fg(Color::Gray)),
+            ]
+        })
+        .collect::<Vec<_>>();
+    text(frame, rows[9], Line::from(spans), Color::Gray);
+    if !app.waiting_for_next {
+        text(frame, rows[10], "w/b switch   q quit", Color::DarkGray);
+    }
+    if let Some(message) = &app.status_message {
+        text(frame, rows[11], message.clone(), Color::Yellow);
+    }
+}
 
-    render_sep(frame, sep5, &sep_line, sep_style);
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{config::OnEnd, timer::TimerConfig};
+    use ratatui::{Terminal, backend::TestBackend};
 
-    // Help
-    let help = Paragraph::new(Line::from(vec![
-        Span::styled(
-            QUIT_KEY.to_string(),
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::styled(" quit  ", Style::default().fg(Color::DarkGray)),
-        Span::styled(
-            PAUSE_KEY.to_string(),
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::styled("/", Style::default().fg(Color::DarkGray)),
-        Span::styled(
-            "space",
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::styled(" pause  ", Style::default().fg(Color::DarkGray)),
-        Span::styled(
-            SKIP_KEY.to_string(),
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::styled(" skip  ", Style::default().fg(Color::DarkGray)),
-        Span::styled(
-            WORK_KEY.to_string(),
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::styled("/", Style::default().fg(Color::DarkGray)),
-        Span::styled(
-            BREAK_KEY.to_string(),
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::styled(" switch", Style::default().fg(Color::DarkGray)),
-    ]))
-    .alignment(Alignment::Center);
-    frame.render_widget(help, help_area);
+    fn app() -> App {
+        App::new(TimerConfig {
+            work_secs: 1500,
+            break_secs: 300,
+            long_break_secs: 900,
+            sessions: 4,
+            on_end: OnEnd::Start,
+        })
+    }
+
+    fn render(width: u16, height: u16, app: &mut App) -> String {
+        let mut terminal = Terminal::new(TestBackend::new(width, height)).unwrap();
+        terminal.draw(|frame| draw(frame, app)).unwrap();
+        terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect()
+    }
+
+    #[test]
+    fn visible_clock_and_labels_share_the_center() {
+        for width in [60, 61, 80, 81] {
+            for seconds in [1500, 899, 671, 0] {
+                let mut app = app();
+                app.timer.remaining = std::time::Duration::from_secs(seconds);
+                let mut terminal = Terminal::new(TestBackend::new(width, 24)).unwrap();
+                terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+                let buffer = terminal.backend().buffer();
+                let area = centered(buffer.area, BOX_WIDTH, BOX_HEIGHT);
+                // Treat all four clock rows as one visible shape.
+                for (offset, height) in [(0, 1), (2, 4), (7, 1), (9, 1), (10, 1), (12, 1), (13, 1)]
+                {
+                    let visible = |x| {
+                        (area.y + offset..area.y + offset + height)
+                            .any(|y| buffer[(x, y)].symbol() != " ")
+                    };
+                    let left = (area.x..area.right()).find(|&x| visible(x)).unwrap();
+                    let right = (area.x..area.right()).rfind(|&x| visible(x)).unwrap();
+                    let left_margin = left - area.x;
+                    let right_margin = area.right() - right - 1;
+                    assert!(
+                        left_margin.abs_diff(right_margin) <= 1,
+                        "width={width}, seconds={seconds}, row={offset}: {left_margin} / {right_margin}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn clock_survives_narrow_and_tiny_terminals() {
+        let mut app = app();
+        for (width, height) in [
+            (1, 1),
+            (0, 0),
+            (5, 1),
+            (20, 4),
+            (39, 12),
+            (40, 14),
+            (40, 15),
+            (40, 17),
+            (80, 24),
+        ] {
+            let output = render(width, height, &mut app);
+            assert_eq!(
+                output.chars().count(),
+                usize::from(width) * usize::from(height)
+            );
+            if width >= 5 && height < BOX_HEIGHT {
+                assert!(output.contains("25:00"));
+            }
+        }
+    }
+
+    #[test]
+    fn waiting_shows_next_controls_in_both_layouts() {
+        let mut app = app();
+        app.waiting_for_next = true;
+        app.timer.remaining = std::time::Duration::ZERO;
+        for (width, height) in [(36, 5), (80, 24)] {
+            let output = render(width, height, &mut app);
+            assert!(output.contains("complete"));
+            assert!(output.contains("next"));
+            assert!(!output.contains("pause"));
+        }
+    }
+
+    #[test]
+    fn persistence_errors_are_visible() {
+        let mut app = app();
+        app.status_message = Some("Could not save statistics".into());
+        for (width, height) in [(36, 5), (80, 24)] {
+            assert!(render(width, height, &mut app).contains("Could not save statistics"));
+        }
+    }
 }
