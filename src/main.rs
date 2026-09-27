@@ -34,11 +34,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             cfg.on_end = on_end.unwrap_or(cfg.on_end);
             let config = cfg.timer_config()?;
 
-            if minimal {
-                minimal::run(config)?;
+            let result = if minimal {
+                minimal::run(config)
             } else {
-                tui::run(config)?;
-            }
+                tui::run(config)
+            };
+            notification::flush();
+            result?;
         }
         Commands::Stats { command } => match command {
             Some(StatsCommands::Today) => stats::print_today()?,

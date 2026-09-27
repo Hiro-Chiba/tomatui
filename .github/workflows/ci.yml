@@ -20,6 +20,8 @@ jobs:
             label: Ubuntu
           - os: macos-latest
             label: macOS
+          - os: macos-15-intel
+            label: macOS (Intel)
           - os: windows-latest
             label: Windows
     runs-on: ${{ matrix.os }}

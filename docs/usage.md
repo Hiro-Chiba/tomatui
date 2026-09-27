@@ -119,7 +119,9 @@ Statistics use `tomatui/stats.json` in the standard OS data directory. `tomatui 
 | macOS | `~/Library/Application Support` | `~/Library/Application Support` |
 | Windows | `%APPDATA%` | `%APPDATA%` |
 
-Desktop notifications are best effort on macOS and Linux. Linux requires `notify-send`. Windows and systems without desktop notification support use the terminal bell.
+Desktop notifications use the bundled pixel-art tomato icon on macOS 11 or later, Linux, and Windows 10/11. macOS asks for notification permission for Tomatui on the first notification. Linux requires `notify-send`, and icon display depends on the desktop notification server. Windows uses the built-in Windows PowerShell to register Tomatui for the current user and display a toast with the icon. Clicking a Windows toast opens the Tomatui project page. The terminal bell remains available when desktop notifications are unavailable or disabled.
+
+Notification assets are embedded in the binary and saved under `tomatui/notifications` in the local data directory on first use. macOS also installs a small notification app there. Building from source on macOS requires Xcode Command Line Tools with Swift; prebuilt binaries do not require these tools.
 
 </details>
 
