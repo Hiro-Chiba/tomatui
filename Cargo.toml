@@ -11,7 +11,7 @@ readme = "README.md"
 keywords = ["pomodoro", "timer", "tui", "productivity", "terminal"]
 categories = ["command-line-utilities"]
 rust-version = "1.93"
-exclude = ["assets/", ".github/", "rust-toolchain.toml"]
+exclude = ["assets/*", "!assets/tomatui-icon.png", "!assets/tomatui-icon.icns", ".github/", "rust-toolchain.toml"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }

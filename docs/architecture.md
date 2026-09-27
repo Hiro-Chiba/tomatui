@@ -23,3 +23,9 @@ Keep the original phase palette. Work uses `#EB5757`, Break uses `#6FCF97`, and 
 ## Event loop
 
 Both displays wait with `crossterm::event::poll` until the next visible second boundary. The timeout subtracts time spent drawing so rendering cannot accumulate clock drift. Paused timers and completion prompts use a 30-second idle timeout. Keyboard and resize events wake the poll immediately. The loop applies elapsed time before input, processes skips immediately, and exits without an extra wait after natural completion in quit mode. Ignored keys do not trigger redraws.
+
+## Notifications
+
+Notification artwork follows the TUI's retro block-pixel style and phase palette. The source icon is `assets/tomatui-icon.png`, with `assets/tomatui-icon.icns` for the macOS app bundle. Both are embedded and included in the Cargo package.
+
+The existing completion callback sends notifications on a background thread. Timer shutdown waits for dispatch so `on_end = quit` does not lose the final notification. Linux passes the PNG to `notify-send`. Windows uses a PowerShell WinRT toast with an app logo and per-user app registration. macOS uses a small Swift app built alongside the binary, since the notification icon belongs to the sending app and cannot be set by `osascript`. Its signed bundles are cached by content under the local data directory, allowing concurrent timer versions to coexist. The helper requests notification permission and exits after scheduling.

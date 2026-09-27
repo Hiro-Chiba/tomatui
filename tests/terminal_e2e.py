@@ -108,20 +108,37 @@ class Home:
         self.root = Path(self.temp.name)
         bin_dir = self.root / "bin"
         bin_dir.mkdir()
-        for name in ("notify-send", "osascript"):
+        for name in ("notify-send", "open"):
             stub = bin_dir / name
-            stub.write_text("#!/bin/sh\nexit 0\n")
+            stub.write_text("#!/usr/bin/env python3\nimport json, os, sys\n"
+                            "with open(os.environ['TOMATUI_NOTIFICATION_LOG'], 'a') as log:\n"
+                            "    log.write(json.dumps(sys.argv[1:]) + '\\n')\n")
             stub.chmod(0o755)
         self.env = dict(os.environ, HOME=str(self.root),
                         XDG_CONFIG_HOME=str(self.root / "config"),
                         XDG_DATA_HOME=str(self.root / "data"),
                         XDG_CACHE_HOME=str(self.root / "cache"),
                         TERM="xterm-256color", NO_COLOR="1",
+                        TOMATUI_NOTIFICATION_LOG=str(self.root / "notifications.jsonl"),
                         PATH=str(bin_dir) + os.pathsep + os.environ.get("PATH", ""))
         base = self.root / "Library/Application Support" if sys.platform == "darwin" else None
         self.config = (base or self.root / "config") / "tomatui/config.json"
         self.stats = (base or self.root / "data") / "tomatui/stats.json"
         return self
+
+    def assert_notification(self):
+        calls = [json.loads(line) for line in
+                 (self.root / "notifications.jsonl").read_text().splitlines()]
+        assert len(calls) == 1, f"expected one notification, got {calls}"
+        assert calls[0][-2:] == ["Tomatui", "Work session complete! Time for a break."]
+        base = self.root / "Library/Application Support" if sys.platform == "darwin" else self.root / "data"
+        icon = base / "tomatui/notifications/tomatui-icon.png"
+        assert icon.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+        if sys.platform == "darwin":
+            bundle = Path(calls[0][2])
+            assert (bundle / "Contents/Resources/tomatui-icon.icns").is_file()
+        else:
+            assert calls[0][1:3] == ["--icon", str(icon)]
 
     def __exit__(self, *_):
         self.temp.cleanup()
@@ -328,6 +345,8 @@ def main():
         assert ask_home.totals() == (1, 1)
         quit_timer.clean_exit()
         assert quit_home.totals() == (1, 1), "quit completion not persisted exactly once"
+        ask_home.assert_notification()
+        quit_home.assert_notification()
     print(f"PASS natural completion, ask/Enter, quit and persistence ({time.monotonic() - started:.1f}s)")
 
 

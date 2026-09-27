@@ -119,7 +119,9 @@ tomatui stats summary           # 全期間のサマリー
 | macOS | `~/Library/Application Support` | `~/Library/Application Support` |
 | Windows | `%APPDATA%` | `%APPDATA%` |
 
-macOS・Linuxのデスクトップ通知は、環境が対応している場合に送信します。Linuxでは`notify-send`が必要です。Windowsやデスクトップ通知を使えない環境では、ターミナルベルを使います。
+macOS 11以降・Linux・Windows 10/11では、同梱したドット絵のトマトを使ってデスクトップ通知を送信します。macOSでは初回通知時にTomatuiの通知許可を求めます。Linuxでは`notify-send`が必要で、アイコンの表示はデスクトップの通知サーバーに依存します。Windowsでは標準のWindows PowerShellで現在のユーザーにTomatuiを登録し、画像付きトースト通知を表示します。Windowsの通知をクリックするとTomatuiのプロジェクトページが開きます。通知が無効な場合や利用できない環境でも、ターミナルベルは使えます。
+
+画像は実行ファイルに埋め込み、初回使用時にローカルデータディレクトリの`tomatui/notifications`へ保存します。macOSでは通知用の小さなアプリも同じ場所に配置します。macOSでソースからビルドする場合はSwiftを含むXcode Command Line Toolsが必要ですが、配布バイナリの利用には不要です。
 
 </details>
 
