@@ -10,7 +10,7 @@ function New-TomatuiToast([string] $title, [string] $message, [string] $iconPath
     [Windows.UI.Notifications.ToastNotification, Windows.UI.Notifications, ContentType = WindowsRuntime] > $null
     [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] > $null
     $xml = [Windows.Data.Xml.Dom.XmlDocument]::new()
-    $xml.LoadXml('<toast activationType="protocol" launch="https://github.com/Hiro-Chiba/tomatui"><visual><binding template="ToastGeneric"><text/><text/><image placement="appLogoOverride"/></binding></visual><audio silent="true"/></toast>')
+    $xml.LoadXml('<toast activationType="protocol" launch="https://github.com/Hiro-Chiba/tomatui"><visual><binding template="ToastGeneric"><text/><text/><image placement="appLogoOverride"/></binding></visual><audio src="ms-winsoundevent:Notification.Default"/></toast>')
     $textNodes = $xml.GetElementsByTagName('text')
     $null = $textNodes.Item(0).AppendChild($xml.CreateTextNode($title))
     $null = $textNodes.Item(1).AppendChild($xml.CreateTextNode($message))
@@ -130,7 +130,11 @@ if ($text.Item(1).InnerText -cne $env:TOMATUI_TEST_MESSAGE) { throw 'Message cha
 $image = $xml.GetElementsByTagName('image').Item(0)
 if ($image.GetAttribute('placement') -ne 'appLogoOverride') { throw 'Missing app logo' }
 if ($image.GetAttribute('src') -cne ([System.Uri]::new($env:TOMATUI_TEST_ICON)).AbsoluteUri) { throw 'Icon URI changed' }
-if ($xml.GetElementsByTagName('audio').Item(0).GetAttribute('silent') -ne 'true') { throw 'Toast must not duplicate the terminal bell' }
+$audioNodes = $xml.GetElementsByTagName('audio')
+if ($audioNodes.Length -ne 1) { throw 'Expected exactly one notification sound' }
+$audio = $audioNodes.Item(0)
+if ($audio.GetAttribute('src') -ne 'ms-winsoundevent:Notification.Default') { throw 'Missing default notification sound' }
+if ($audio.GetAttribute('silent') -eq 'true') { throw 'Notification sound must not be muted' }
 if ($xml.DocumentElement.GetAttribute('activationType') -ne 'protocol') { throw 'Stub activator requires protocol activation' }
 if ($xml.DocumentElement.GetAttribute('launch') -ne 'https://github.com/Hiro-Chiba/tomatui') { throw 'Unexpected click destination' }
 "#,

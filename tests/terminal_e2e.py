@@ -139,6 +139,9 @@ class Home:
             assert (bundle / "Contents/Resources/tomatui-icon.icns").is_file()
         else:
             assert calls[0][1:3] == ["--icon", str(icon)]
+            options = calls[0][:calls[0].index("--")]
+            assert "--hint=string:sound-name:message-new-instant" in options, \
+                "completion notification must request a desktop sound"
 
     def __exit__(self, *_):
         self.temp.cleanup()
