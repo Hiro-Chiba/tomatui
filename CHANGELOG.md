@@ -4,6 +4,14 @@ Notable changes to Tomatui are recorded here.
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-09-28
+
+### Added
+
+- Desktop notifications with the bundled tomato icon on macOS, Linux, and Windows.
+- Default notification sounds on macOS and Windows, and desktop theme notification sounds on supported Linux desktops.
+- Native notification sound checks on macOS and Windows, plus Linux completion sound-hint coverage.
+
 ## [0.2.1] - 2026-09-16
 
 ### Changed
@@ -99,7 +107,7 @@ Notable changes to Tomatui are recorded here.
 
 - Initial crates.io release.
 
-[Unreleased]: https://github.com/Hiro-Chiba/tomatui/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/Hiro-Chiba/tomatui/compare/v0.2.2...HEAD
 [0.1.5]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.4
 [0.1.3]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.1.3
@@ -109,3 +117,5 @@ Notable changes to Tomatui are recorded here.
 [0.2.0]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.2.0
 
 [0.2.1]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.2.1
+
+[0.2.2]: https://github.com/Hiro-Chiba/tomatui/releases/tag/v0.2.2
