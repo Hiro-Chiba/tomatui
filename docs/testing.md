@@ -14,6 +14,8 @@ Rust tests include subprocess checks for CLI help, version, and invalid argument
 
 The terminal suite covers both displays, duration arguments, pause and resume, extensions, phase changes, resizing, quit keys, terminal restoration, saved settings, and completed-work persistence. Windows console interaction is not covered by the Unix PTY suite. Rust unit tests and CLI subprocess tests still run on Windows.
 
+CI also runs `cargo audit` against `Cargo.lock` on pull requests and pushes to main. The required `check` job fails if the vulnerability audit fails. To run it locally, install `cargo-audit` 0.22.1 with `cargo install cargo-audit --version 0.22.1 --locked`.
+
 ## Performance checks
 
 The timer deadline tests check the wait duration at fractional-second boundaries and after delayed drawing. The input-state test checks that paused and completed timers do not busy-poll and ignored keys do not request redraws. The terminal suite also checks ignored input while paused.

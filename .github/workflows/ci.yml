@@ -51,10 +51,19 @@ jobs:
       - run: rustup toolchain install "${{ steps.msrv.outputs.version }}" --profile minimal --no-self-update
       - run: cargo "+${{ steps.msrv.outputs.version }}" check --locked --all-targets
 
+  audit:
+    name: Dependency vulnerability audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install --no-self-update
+      - run: cargo install cargo-audit --version 0.22.1 --locked
+      - run: cargo audit
+
   required:
     # Keep this name stable because the main branch ruleset requires it.
     name: check
-    needs: [check, msrv]
+    needs: [check, msrv, audit]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -62,3 +71,4 @@ jobs:
         run: |
           test "${{ needs.check.result }}" = "success"
           test "${{ needs.msrv.result }}" = "success"
+          test "${{ needs.audit.result }}" = "success"
