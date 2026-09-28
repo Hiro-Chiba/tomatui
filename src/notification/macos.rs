@@ -85,6 +85,46 @@ mod tests {
     use super::*;
 
     #[test]
+    fn notification_requests_default_sound_and_sound_permissions() {
+        let executable = std::env::temp_dir().join(format!(
+            "tomatui-notification-test-{}-{}",
+            std::process::id(),
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let compilation = Command::new("xcrun")
+            .args(["swiftc", "-D", "NOTIFICATION_TESTS"])
+            .arg(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/src/notification/macos/notify.swift"
+            ))
+            .arg("-o")
+            .arg(&executable)
+            .output()
+            .expect("compile macOS notification sound tests");
+        assert!(
+            compilation.status.success(),
+            "{}",
+            String::from_utf8_lossy(&compilation.stderr)
+        );
+        let result = Command::new(&executable)
+            .output()
+            .expect("run macOS notification sound tests");
+        fs::remove_file(executable).unwrap();
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        assert_eq!(
+            String::from_utf8_lossy(&result.stdout).trim(),
+            "macOS notification sound checks passed"
+        );
+    }
+
+    #[test]
     fn bundle_contains_embedded_helper_icon_and_identity() {
         let directory = std::env::temp_dir().join(format!(
             "tomatui-bundle-test-{}-{}",

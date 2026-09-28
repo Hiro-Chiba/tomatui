@@ -7,6 +7,7 @@ fn command(title: &str, message: &str, icon: &Path) -> Command {
         .arg("--app-name=Tomatui")
         .arg("--icon")
         .arg(icon)
+        .arg("--hint=string:sound-name:message-new-instant")
         .arg("--")
         .arg(title)
         .arg(message)
@@ -39,6 +40,7 @@ mod tests {
                 "--app-name=Tomatui",
                 "--icon",
                 "/tmp/with spaces/icon.png",
+                "--hint=string:sound-name:message-new-instant",
                 "--",
                 "--title",
                 "休憩 ' & $()"

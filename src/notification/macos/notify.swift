@@ -1,6 +1,17 @@
 import AppKit
 import UserNotifications
 
+let authorizationOptions: UNAuthorizationOptions = [.alert, .sound]
+let presentationOptions: UNNotificationPresentationOptions = [.banner, .list, .sound]
+
+func notificationRequest(title: String, body: String) -> UNNotificationRequest {
+    let content = UNMutableNotificationContent()
+    content.title = title
+    content.body = body
+    content.sound = .default
+    return UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+}
+
 final class NotificationDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard CommandLine.arguments.count == 3 else {
@@ -9,15 +20,12 @@ final class NotificationDelegate: NSObject, NSApplicationDelegate, UNUserNotific
         }
         let center = UNUserNotificationCenter.current()
         center.delegate = self
-        center.requestAuthorization(options: [.alert]) { granted, _ in
+        center.requestAuthorization(options: authorizationOptions) { granted, _ in
             guard granted else {
                 self.finish()
                 return
             }
-            let content = UNMutableNotificationContent()
-            content.title = CommandLine.arguments[1]
-            content.body = CommandLine.arguments[2]
-            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+            let request = notificationRequest(title: CommandLine.arguments[1], body: CommandLine.arguments[2])
             center.add(request) { _ in self.finish() }
         }
         // Do not leave an invisible helper running if the permission dialog is ignored.
@@ -29,7 +37,7 @@ final class NotificationDelegate: NSObject, NSApplicationDelegate, UNUserNotific
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        completionHandler([.banner, .list])
+        completionHandler(presentationOptions)
     }
 
     private func finish() {
@@ -38,7 +46,19 @@ final class NotificationDelegate: NSObject, NSApplicationDelegate, UNUserNotific
     }
 }
 
+#if NOTIFICATION_TESTS
+// Exercise the real framework objects without requesting permission or delivering notifications.
+let request = notificationRequest(title: "Work complete", body: "Take a break")
+assert(request.content.title == "Work complete")
+assert(request.content.body == "Take a break")
+assert(request.trigger == nil)
+assert(request.content.sound == UNNotificationSound.default, "notification must use the default sound")
+assert(authorizationOptions.contains(.sound), "authorization must include sound")
+assert(presentationOptions.contains(.sound), "foreground presentation must include sound")
+print("macOS notification sound checks passed")
+#else
 let app = NSApplication.shared
 let delegate = NotificationDelegate()
 app.delegate = delegate
 app.run()
+#endif
